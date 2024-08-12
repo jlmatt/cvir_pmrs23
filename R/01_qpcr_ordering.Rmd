@@ -1,0 +1,79 @@
+
+```{r}
+library(pantomime)
+library(seqhelp)
+library(tidyverse)
+```
+
+Going with the primers and probe from Faveri et al. 2009 and the Gblock from this as well. 
+
+
+Forward primer: 
+CGCCTGTGAGTATCTCTCGA
+
+```{r}
+fwdp <- "CGCCTGTGAGTATCTCTCGA"
+```
+
+Reverse primer: 
+GTTGAAGAGAAGAATCGCGTGAT
+reverse_complement:
+ATCACGCGATTCTTCTCTTCAAC
+
+```{r}
+revp<- "GTTGAAGAGAAGAATCGCGTGAT"
+```
+
+Sequence from Blast:
+
+MK253305.1 is perkinsus marinus, I found it by blasting the primer sequence from Faveri et al 2009
+
+```{r}
+permar<-read_fasta(here::here("data","raw","MK253305.1.fasta"))
+```
+
+# Save amplicon sequence -- between the forward primer and end of reverse primer
+
+".*? matches any character (non-greedy) in between"
+
+```{r}
+permar <- permar %>%
+  mutate(amplicon = str_extract(seq, "CGCCTGTGAGTATCTCTCGA.*?ATCACGCGATTCTTCTCTTCAAC"))
+nchar(permar$amplicon)
+```
+
+# Save glbock sequence
+
+Find thirteen characters before forward primer 
+
+```{r}
+before = str_extract(permar$seq, ".{18}(?=CGCCTGTGAGTATCTCTCGA)")
+after = str_extract(permar$seq, "(?<=ATCACGCGATTCTTCTCTTCAAC).{18}")
+```
+
+```{r}
+permar <- permar %>%
+  mutate(gblock = str_extract(seq, "CCTCCGAAAGGAGGCTTG.*?GCATTACGTCAAATCTAT"))
+```
+
+```{r}
+str(permar$gblock)
+nchar(permar$gblock)
+nchar(permar$amplicon)
+full<-permar$seq
+```
+
+
+```{r}
+seqhelp::write_fasta(here::here("out","pmar_fwd.fasta"),"F",fwdp)
+seqhelp::write_fasta(here::here("out","pmar_rev.fasta"),"R",revp)
+seqhelp::write_fasta(here::here("out","pmar_gblock.fasta"),"gblock",permar$gblock)
+seqhelp::write_fasta(here::here("out","pmar_probe.fasta"),"probe","CGCAAACTCGACTGTGTTGTGGTG")
+
+probe_info<-tibble(full_probe_info= "5’-/56-FAM/CGC AAA CTC GAC TGT GTT GTG GTG/3BHQ1/-3'")
+
+write_csv(probe_info, here::here("out","full_probe_info.csv"))
+
+examine<-read_fasta(here::here("out","pmar_fwd.fasta"))
+```
+

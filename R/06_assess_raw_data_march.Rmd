@@ -1,0 +1,128 @@
+---
+title: "pmrs_data_assessment_april"
+subtitle:
+author: |
+   Texas A&M University-Corpus Christi
+date: "August_2024"
+output:
+    github_document:
+    toc: true
+    toc_depth: 2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+library(tidyverse)
+library(here)
+library(janitor)
+library(readxl)
+library(skimr)
+```
+
+```{r}
+data <- read_xlsx(here::here("data", "raw", "pmar1_survey_data_march_2024.xlsx")) %>%
+  janitor::clean_names() %>%
+  mutate(across(everything(), as.character)) %>%
+  mutate(salinity = as.numeric(salinity)) %>%
+  mutate(temp = as.numeric(temp)) %>%
+  mutate(do = as.numeric(do)) %>%
+  mutate(ph = as.numeric(ph)) %>%
+  mutate(total_weight = as.numeric(total_weight)) %>%
+  mutate(shell_length = as.numeric(shell_length)) %>%
+  mutate(shell_width = as.numeric(shell_width)) %>%
+  mutate(shell_height = as.numeric(shell_height)) %>%
+  mutate(shell_weight_and_meat_weight = as.numeric(shell_weight_and_meat_weight)) %>%
+  mutate(shell_weight = as.numeric(shell_weight)) %>% 
+  mutate(egg_count = as.numeric(egg_count)) %>%
+  mutate(sperm_rating = as.numeric(sperm_rating))
+```
+
+```{r}
+skim(data)
+```
+
+Add plate
+Add well_id
+
+```{r}
+data <- data %>%
+  mutate(plate = as.character(NA)) %>%
+  mutate(well_id = as.character(NA))
+```
+
+```{r}
+data <- data %>%
+  select(date,zone,bay,sample_site,salinity,temp,do,ph,tray_num,animal_id,total_weight,shell_length,shell_width,shell_height,plate,well_id,box,tube_id,shell_weight_and_meat_weight,shell_weight,time_shucked,sex,egg_count,sperm_rating,notes)
+```
+
+# Save an RDS version
+
+```{r}
+saveRDS(data,here::here("data","derived","march_data.rds"))
+```
+
+```{r}
+
+```
+
+
+
+# Add in other relevant data
+
+## Meat weight
+
+```{r}
+data <- data %>%
+  mutate(meat_weight = shell_weight_and_meat_weight - shell_weight) %>%
+  mutate(wt_adj_fec = egg_count/meat_weight)
+```
+
+Look for issues with meat weight
+
+```{r}
+hist(data$meat_weight)
+
+plot(data$meat_weight,data$total_weight)
+```
+
+Make meat weight NA for the one sample with negative meat weight
+
+```{r}
+data <- data %>%
+  mutate(meat_weight = if_else(meat_weight < 0,NA,meat_weight))
+```
+
+# Plot wt_adj_fec
+
+Select females
+
+```{r}
+fem <- data %>%
+  filter(sex =="F")
+```
+
+```{r}
+skim(fem)
+```
+
+```{r}
+counts <- fem %>%
+  group_by(sample_site) %>%
+  summarise(count = n())
+```
+
+
+```{r}
+ggplot(fem, aes(sample_site,wt_adj_fec)) + 
+  geom_boxplot() + 
+   geom_text(data = counts, aes(x = sample_site, y = max(fem$wt_adj_fec), label = paste("n =", count)),
+            vjust = 0, hjust = 0.5) + 
+    theme_minimal() + 
+  ggtitle("March")
+```
+
+```{r}
+
+```
+

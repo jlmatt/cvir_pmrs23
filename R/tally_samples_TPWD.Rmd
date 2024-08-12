@@ -1,0 +1,119 @@
+---
+title: "pmrs_tally_data"
+subtitle:
+author: |
+   Texas A&M University-Corpus Christi
+output:
+    github_document:
+    toc: true
+    toc_depth: 2
+---
+
+Tally some data for TPWD
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+library(tidyverse)
+library(here)
+library(janitor)
+library(readxl)
+library(skimr)
+```
+
+load in site data
+
+```{r}
+site <- read_xlsx(here::here("data", "raw", "pmar1_survey_site_data.xlsx")) %>%
+  janitor::clean_names() %>%
+  rename(site_notes = notes)
+```
+
+load in collection data
+
+```{r}
+oct <- readRDS(here("data","derived", "october_data.rds"))
+nov <- readRDS(here("data","derived", "november_data.rds"))
+dec <- readRDS(here("data","derived", "december_data.rds"))
+jan <- readRDS(here("data","derived", "jan_data.rds"))
+feb <- readRDS(here("data","derived", "feb_data.rds"))
+mar <- readRDS(here("data","derived", "march_data.rds"))
+apr <- readRDS(here("data","derived", "april_data.rds"))
+may <- readRDS(here("data","derived", "may_data.rds"))
+jun <- readRDS(here("data","derived", "june_data.rds"))
+
+data <- bind_rows(oct,nov,dec,jan,feb,mar,apr,may,jun)
+```
+
+Fix sample_sites in collection data
+
+```{r}
+data %>%
+  group_by(sample_site) %>%
+  summarize(n=n())
+```
+
+Rename CLP to CNL
+
+```{r}
+data <- data %>%
+  mutate(sample_site = if_else(sample_site == "CLP", "CNL", sample_site))
+```
+
+Fix bay
+
+```{r}
+data %>%
+  group_by(date,bay) %>%
+  summarize(n=n())
+```
+
+Rename APA to ARA
+Rename ARS to ARA
+Rename MBG to MGB
+Rename MEG to MGB
+Rename SAN to SAB
+
+```{r}
+data <- data %>%
+  mutate(bay = if_else(bay == "APA" | bay == "ARS", "ARA",bay)) %>%
+  mutate(bay = if_else(bay == "MBG" | bay == "MEG", "MGB",bay)) %>%
+  mutate(bay = if_else(bay == "SAN", "SAB",bay))
+```
+
+Add site data to collection data
+
+```{r}
+data <- data %>%
+  left_join(.,site) %>%
+  rename(coordinates = location)
+```
+
+Summarize data
+
+```{r}
+tpwd <- data %>%
+  group_by(date,site_name,city_town_region,water_body,coordinates) %>%
+  summarize(collected=n()) %>%
+  ungroup()
+
+tpwd_report <- tpwd %>%
+  mutate(location_collected = paste(site_name,city_town_region,water_body,coordinates,sep = ", ")) %>%
+  rename(date_of_collection = date) %>%
+  mutate(scientific_name = "Crassostrea virginica") %>%
+  mutate(number_caught_and_released = 0) %>%
+  rename(number_collected_live_take = collected) %>%
+  mutate(number_salvaged = 0) %>%
+  mutate(number_incidental_mortalities = 0) %>%
+  mutate(disposition_of_specimens = "live") %>%
+  select(scientific_name,date_of_collection,location_collected,number_caught_and_released,number_collected_live_take,number_salvaged,number_incidental_mortalities,disposition_of_specimens)
+```
+
+```{r}
+writexl::write_xlsx(tpwd_report,here::here("out","tpwd_report_oct23_june24.xlsx"))
+```
+
+```{r}
+
+```
+
