@@ -1,0 +1,49 @@
+
+Make sure you are in the shiny environment in /home/jmatt1/bin/miniforge3/bin/mamba
+
+```{r}
+library("shiny")
+library("bslib")
+library("ragg")
+
+runExample("01_hello")
+```
+
+```{r}
+runApp("shiny", display.mode = "showcase")
+```
+
+# Adjust data
+
+The data for the shiny app was copied from data/derived.  Need to make a few tweaks that are in the graphing examination markdown. 
+
+```{r}
+data <- readRDS(here::here("data","derived","clean_data.RDS"))
+```
+
+Take out IND data, doesn't add anything
+
+```{r}
+data <- data %>%
+  filter(!sample_site == "IND")
+```
+
+Save data
+
+```{r}
+data <- saveRDS(data,here::here("shiny","data","clean_data.rds"))
+```
+
+Resources: 
+https://shiny.posit.co/r/gallery/widgets/widget-gallery/
+
+
+Ways to improve the graph: 
+ 1) Need a way to specify that oysters were collected but no females found 
+ 2) How can I do this with a better set of symbols and colors and background
+ 3) need to order the checkbox on the left in order of latitude
+ 4) need to fix the legends so they are visible
+ 5)     each site is either a square or a triangle, but the color x shape combo is how it            works
+          so the first legend would be color
+          the second legend would be site with either square or triangle (this legend could be hidden with a click on the shiny app)
+ 6) 

@@ -28,8 +28,6 @@ data <- readRDS(here::here("data","derived","clean_data.RDS"))
 str(data)
 ```
 
-
-
 # Data adjustment for graphing
 
 Take out IND data, doesn't add anything
@@ -87,8 +85,6 @@ data <- data %>%
   filter(!tube_id == "JAN_UVB_14")
 ```
 
-
-
 ```{r}
 fec <- data %>%
   filter(sex =="F") %>%
@@ -117,9 +113,52 @@ ggplot(fec, aes(x = date , y = md, color = fct_reorder(bay,latitude, .desc = TRU
 
 
 ```{r}
+ggplot(fec, aes(x = date , y = md, color = fct_reorder(bay,latitude, .desc = TRUE),shape = fct_reorder(sample_site,latitude,.desc = TRUE))) +
+  geom_point(size = 5) +
+  geom_line() + 
+  scale_color_brewer(palette = "RdYlGn",direction = -1)+
+  labs(color = "Bay",shape = "Site") + 
+      scale_shape_manual(values = c(16, 17)) +  # Use filled shapes, specify only two shapes
+      labs(color = "Bay", shape = "Site") + 
+      theme(panel.background = element_rect(fill = "white"),  # Change background to white
+            panel.grid.major = element_line(size = 0.5, linetype = 'solid', colour = "gray80"), 
+            panel.grid.minor = element_line(size = 0.25, linetype = 'solid', colour = "gray90"),
+            legend.background = element_rect(fill = "white", color = "gray80"),  # White legend background
+            legend.key = element_rect(fill = "white")) 
+```
+
+
+
+```{r}
+ggplot(fec, aes(x = date, y = md, 
+                             color = fct_reorder(bay, latitude, .desc = TRUE),
+                             shape = fct_reorder(sample_site, latitude, .desc = TRUE))) +
+      geom_point(size = 5, fill = "white", stroke = 1.5) +  # Use filled symbols
+      geom_line() + 
+      scale_color_brewer(palette = "RdYlGn",direction = -1)+
+      scale_shape_manual(values = c(16, 17)) +  # Use filled shapes, specify only two shapes
+      labs(color = "Bay", shape = "Site") + 
+      theme(panel.background = element_rect(fill = "white"),  # Change background to white
+            panel.grid.major = element_line(size = 0.5, linetype = 'solid', colour = "gray80"), 
+            panel.grid.minor = element_line(size = 0.25, linetype = 'solid', colour = "gray90"),
+            legend.background = element_rect(fill = "white", color = "gray80"),  # White legend background
+            legend.key = element_rect(fill = "white")) 
+```
+
+
+```{r}
 look <- data %>%
   filter(sample_site == "UVB") %>%
   filter(date < "2024-02-02")
   
+```
+
+
+```{r}
+ggplot(fec, aes(x = date, y = md, color = bay, shape = sample_site)) +
+  geom_point(size = 4) + # Adjust size as needed
+  scale_shape_manual(values = c(15, 17)) + # 15 = filled square, 17 = filled triangle
+  labs(color = "Bay", shape = "Sample Site") +
+  theme_minimal()
 ```
 
