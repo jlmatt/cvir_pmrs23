@@ -106,36 +106,124 @@ site_codes<-fec %>%
   ) %>%
   arrange(bay) %>%
   ungroup() %>%
-  mutate(code_site = c(1,2,1,2,3,1,2,3,1,1,2,1,2,1,2,1,2)) %>%
+  mutate(code_site = c(1,2,1,2,3,1,2,1,1,2,1,2,1,2,1,2)) %>%
   select(-n)
 
 site_info <- data %>%
   select(sample_site,latitude) %>%
   unique()
 
-site_codes %>%
-  filter(sample_site %in% site_info$sample_site)
-
 site_codes <- site_codes %>%
   left_join(.,site_info,by = "sample_site") %>%
-  arrange(latitude, .desc = TRUE)
+  arrange(desc(latitude)) %>%
+  select(sample_site,code_site)
+
+fec <- fec %>%
+  left_join(.,site_codes, by = "sample_site") %>%
+  mutate(code_site = as.factor(code_site))
 ```
 
-# TEST GRAPH
+# TEST GRAPH 1
+
+What I need is a vector of colors associated with each site (based on bay) and a vector of shapes associated with each site (based on site code)
+
+First make fec with bay_sample_site, 
 
 ```{r}
-ggplot(fec, aes(x = date , y = md, color = fct_reorder(bay,latitude, .desc = TRUE),shape = )) +
+fec <- fec %>%
+  mutate(key = paste(bay,sample_site,sep = "_")) 
+```
+
+then make a color for each bay
+
+```{r}
+bay_colors <- data %>%
+  select(bay,latitude) %>%
+  unique() %>%
+  arrange(desc(latitude)) %>%
+  select(bay) %>%
+  unique() %>%
+  mutate(color = rev(brewer.pal(8, "RdYlGn")))
+```
+
+and we already have a shape for each sample site
+
+add bay_colors to fec, pull out just key, color, and code site
+
+```{r}
+fec <-fec %>%
+  left_join(.,bay_colors, by = "bay")
+```
+
+```{r}
+legend <- fec %>%
+  arrange(desc(latitude)) %>%
+  select(key,color,code_site) %>%
+  unique()
+
+colors <- legend %>%
+  pull(color)
+
+shapes <- legend %>%
+  mutate(code_site = as.numeric(code_site)) %>%
+  mutate(code_site = if_else(code_site == 1,21,code_site)) %>%
+  mutate(code_site = if_else(code_site == 2,22,code_site)) %>%
+  mutate(code_site = if_else(code_site == 3,23,code_site)) %>%
+  pull(code_site)
+
+key <- legend %>%
+  pull(key)
+```
+
+
+```{r}
+
+ggplot(fec, aes(x = date , y = md, 
+                fill= fct_reorder(key,latitude, .desc = TRUE),
+                shape = fct_reorder(key,latitude, .desc = TRUE),
+                color = fct_reorder(bay,latitude, .desc = TRUE))) +
+  geom_point(size = 5, stroke = 1, color = "black") + 
+  geom_line(linewidth = 1) +
+  scale_color_manual(values = rev(brewer.pal(8, "RdYlGn"))) +
+  scale_fill_manual(name = "Sites",
+                     labels = key,
+                     values = colors) +
+  scale_shape_manual(name = "Sites",
+                     labels = key,
+                     values = shapes)
+```
+
+```{r}
+ggplot(fec, aes(x = date, y = md, color = fct_reorder(key, latitude, .desc = TRUE), 
+                shape = fct_reorder(key, latitude, .desc = TRUE))) +
+  geom_point(size = 5, color = "black", fill = "white", stroke = 1) +  # Add border here
+  geom_line() +
+  scale_color_manual(name = "Sites", labels = levels(fec$key), values = colors) +
+  scale_shape_manual(name = "Sites", labels = levels(fec$key), values = shapes) +
+  theme_minimal()
+```
+
+
+
+# TEST GRAPH 2
+
+```{r}
+ggplot(fec, aes(x = date , y = md, color = fct_reorder(bay,latitude, .desc = TRUE),shape = fct_reorder(code_site,latitude, .desc = TRUE))) +
   geom_point(size = 5) +
   geom_line() + 
   scale_color_brewer(palette = "RdYlGn",direction = -1)+
   labs(color = "Bay",shape = "Site") + 
-  scale_shape_manual(values=seq(0,14)) + 
+  scale_shape_manual(name = "Sites",
+                     labels = sites,
+                     values = shapes) +
   theme(panel.background = element_rect(fill = "gray70"),  
         panel.grid.major = element_line(size = 0.5, linetype = 'solid',
                                 colour = "gray"), 
   panel.grid.minor = element_line(size = 0.25, linetype = 'solid',
                                 colour = "gray"))
 ```
+
+
 
 
 # DEFAULT GRAPH
