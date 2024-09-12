@@ -46,4 +46,5 @@ Ways to improve the graph:
  5)     each site is either a square or a triangle, but the color x shape combo is how it            works
           so the first legend would be color
           the second legend would be site with either square or triangle (this legend could be hidden with a click on the shiny app)
- 6) 
+
+Probably need to specify that you need to fill for the bay, then backcode the legend description somehowx

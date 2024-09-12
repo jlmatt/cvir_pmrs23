@@ -52,13 +52,6 @@ data %>%
   summarize(n=n())
 ```
 
-Rename CLP to CNL
-
-```{r}
-data <- data %>%
-  mutate(sample_site = if_else(sample_site == "CLP", "CNL", sample_site))
-```
-
 Fix bay
 
 ```{r}
@@ -108,3 +101,8 @@ Save raw uncleaned data
 ```{r}
 saveRDS(data,here::here("data","derived","comb_uncleaned_data.RDS"))
 ```
+
+```{r}
+
+```
+
