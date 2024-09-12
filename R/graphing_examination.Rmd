@@ -56,7 +56,7 @@ ggplot(fem, aes(x = date , y = n, color = latitude,shape = fct_reorder(sample_si
   geom_line() + 
   scale_color_gradientn(colors = (brewer.pal(9, "RdYlGn"))) +
   labs(color = "Latitude") + 
-  scale_shape_manual(values=seq(0,14)) + 
+  scale_shape_manual(values=seq(0,15)) + 
   theme_dark()
 ```
 
@@ -67,7 +67,7 @@ ggplot(fem, aes(x = date , y = n, color = fct_reorder(bay,latitude, .desc = TRUE
   geom_line() + 
   scale_color_brewer(palette = "RdYlGn",direction = -1)+
   labs(color = "Latitude") + 
-  scale_shape_manual(values=seq(0,14)) + 
+  scale_shape_manual(values=seq(0,15)) + 
   theme(panel.background = element_rect(fill = "gray70"),  
         panel.grid.major = element_line(size = 0.5, linetype = 'solid',
                                 colour = "gray"), 
@@ -99,26 +99,46 @@ str(fec)
 
 ```{r}
 
-fec %>%
+site_codes<-fec %>%
   group_by(sample_site,bay) %>%
   summarize(
     n=n()
   ) %>%
-  arrange(bay)
+  arrange(bay) %>%
+  ungroup() %>%
+  mutate(code_site = c(1,2,1,2,3,1,2,3,1,1,2,1,2,1,2,1,2)) %>%
+  select(-n)
 
-assign_site <- tibble(site = levels(as.factor(fec$sample_site)),code = c(1,rep(c(1,2),7)))
+site_info <- data %>%
+  select(sample_site,latitude) %>%
+  unique()
 
+site_codes %>%
+  filter(sample_site %in% site_info$sample_site)
 
+site_codes <- site_codes %>%
+  left_join(.,site_info,by = "sample_site") %>%
+  arrange(latitude, .desc = TRUE)
+```
 
-fec %>%
-  mutate(site2 = )
+# TEST GRAPH
 
-
-
-
+```{r}
+ggplot(fec, aes(x = date , y = md, color = fct_reorder(bay,latitude, .desc = TRUE),shape = )) +
+  geom_point(size = 5) +
+  geom_line() + 
+  scale_color_brewer(palette = "RdYlGn",direction = -1)+
+  labs(color = "Bay",shape = "Site") + 
+  scale_shape_manual(values=seq(0,14)) + 
+  theme(panel.background = element_rect(fill = "gray70"),  
+        panel.grid.major = element_line(size = 0.5, linetype = 'solid',
+                                colour = "gray"), 
+  panel.grid.minor = element_line(size = 0.25, linetype = 'solid',
+                                colour = "gray"))
 ```
 
 
+# DEFAULT GRAPH
 ```{r}
 ggplot(fec, aes(x = date , y = md, color = fct_reorder(bay,latitude, .desc = TRUE),shape = fct_reorder(sample_site,latitude,.desc = TRUE))) +
   geom_point(size = 5) +

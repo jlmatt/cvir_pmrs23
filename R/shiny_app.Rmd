@@ -48,3 +48,7 @@ Ways to improve the graph:
           the second legend would be site with either square or triangle (this legend could be hidden with a click on the shiny app)
 
 Probably need to specify that you need to fill for the bay, then backcode the legend description somehowx
+
+
+Some other notes: 
+limits: This argument controls the order of the factor levels in the plot. limits is used to set the factor levels that will be included and their order. It affects both the plot and the legend.
