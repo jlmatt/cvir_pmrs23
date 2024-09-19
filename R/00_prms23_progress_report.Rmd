@@ -1,0 +1,14 @@
+Outline for PMRS23 Progress Report
+
+1) Project Description
+  * What we were interested in
+  * Why we were interested in it
+
+2) Methods
+ * What we did
+ 
+3) Results
+ * What we found: Three big things
+ * Show-off Shiny app
+
+4) Next Steps

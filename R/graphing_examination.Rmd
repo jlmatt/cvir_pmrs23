@@ -24,10 +24,6 @@ library(RColorBrewer)
 data <- readRDS(here::here("data","derived","clean_data.RDS"))
 ```
 
-```{r}
-str(data)
-```
-
 # Data adjustment for graphing
 
 Take out IND data, doesn't add anything
@@ -92,13 +88,9 @@ fec <- data %>%
   summarise(md=median(wt_adj_fec,na.rm = TRUE)) %>%
   mutate(latitude = as.numeric(latitude)) %>%
   ungroup()
-
-str(fec)
 ```
 
-
 ```{r}
-
 site_codes<-fec %>%
   group_by(sample_site,bay) %>%
   summarize(
@@ -159,17 +151,17 @@ fec <-fec %>%
 legend <- fec %>%
   arrange(desc(latitude)) %>%
   select(key,color,code_site) %>%
-  unique()
+  unique()  # legend is key, color, and code site
 
 colors <- legend %>%
-  pull(color)
+  pull(color)  
 
 shapes <- legend %>%
   mutate(code_site = as.numeric(code_site)) %>%
   mutate(code_site = if_else(code_site == 1,21,code_site)) %>%
   mutate(code_site = if_else(code_site == 2,22,code_site)) %>%
   mutate(code_site = if_else(code_site == 3,23,code_site)) %>%
-  pull(code_site)
+  pull(code_site) # shapes are 21 if code site 1, 22 if code site 2, and 23 if code site 3
 
 key <- legend %>%
   pull(key)
@@ -184,14 +176,22 @@ ggplot(fec, aes(x = date , y = md,
                 color = fct_reorder(bay,latitude, .desc = TRUE))) +
   geom_point(size = 5, stroke = 1, color = "black") + 
   geom_line(linewidth = 1) +
-  scale_color_manual(values = rev(brewer.pal(8, "RdYlGn"))) +
+  scale_color_manual(values = rev(brewer.pal(8, "RdYlGn")),guide = "none") +
   scale_fill_manual(name = "Sites",
                      labels = key,
                      values = colors) +
   scale_shape_manual(name = "Sites",
                      labels = key,
-                     values = shapes)
+                     values = shapes) +
+  theme_minimal()
 ```
+
+
+
+
+## NOTES
+
+
 
 ```{r}
 ggplot(fec, aes(x = date, y = md, color = fct_reorder(key, latitude, .desc = TRUE), 

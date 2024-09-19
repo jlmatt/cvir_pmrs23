@@ -10,7 +10,7 @@ runExample("01_hello")
 ```
 
 ```{r}
-runApp("shiny", display.mode = "showcase")
+runApp("shiny")
 ```
 
 # Adjust data
