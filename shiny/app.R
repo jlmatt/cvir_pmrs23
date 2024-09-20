@@ -54,22 +54,11 @@ server <- function(input, output, session) {
     req(input$selected_bays)
     
     # Get sites corresponding to the selected bays
-    available_sites <-   
-      if (input$data_type == "Fecundity") {
-      fec %>%
-        filter(bay_full_name %in% input$selected_bays) %>%
-        arrange(desc(latitude)) %>%
-        pull(site_full_name) %>%
-        unique()
-    } else if (input$data_type == "Females") {
-      fem %>%
-        filter(bay_full_name %in% input$selected_bays) %>%
-        arrange(desc(latitude)) %>%
-        pull(site_full_name) %>%
-        unique()
-    } else {
-      NULL
-    }
+    available_sites <- filteredData() %>%
+      arrange(desc(latitude)) %>%
+      pull(site_full_name) %>%
+      unique()
+    
     
     # Create checkbox group for site selection
     checkboxGroupInput("selected_sites", "Select Sites:", 
@@ -79,8 +68,9 @@ server <- function(input, output, session) {
   
   # Render the plot based on selected data type and sites
   output$linePlot <- renderPlot({
+    req(input$selected_sites)  # Ensure sites are selected
     data_to_plot <- filteredData() %>% 
-      filter(site_full_name %in% input$selected_sites)  # Filter by selected sites
+      filter(site_full_name %in% input$selected_sites)
     
     # Create a unique list of keys and their corresponding colors and shapes based on the data
     unique_keys <- unique(data_to_plot$key)
@@ -105,7 +95,7 @@ server <- function(input, output, session) {
                            values = filtered_legend$shape) +
         scale_y_continuous(limits = c(0,1000000),
                            breaks = seq(0, 1000000, by = 100000),     
-                           labels = function(x) paste0(x / 1000, "K"))+ 
+                           labels = scales::label_number(scale = 1e-3, suffix = "K"))+ 
         scale_x_date(
           limits = as.Date(c("2023-11-01", "2024-07-31")),
           date_breaks = "1 month",              
