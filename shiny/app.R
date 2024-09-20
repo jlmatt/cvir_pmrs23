@@ -2,68 +2,127 @@ library(shiny)
 library(bslib)
 library(ggplot2)
 library(tidyverse)
-library(RColorBrewer)
 library(here)
 
-data <- readRDS(here::here("shiny","data","clean_data.rds"))
+# Load data
+data <- readRDS(here("shiny", "data", "data_for_shiny.rds"))
+fec <- readRDS(here("shiny", "data", "weight_adjusted_fecundity.rds"))
+fem <- readRDS(here("shiny", "data", "number_of_females.rds"))
+legend <- readRDS(here("shiny", "data", "data_for_scale_manual.rds"))
 
-data <- data %>%
-  filter(!tube_id == "JAN_UVB_14")
-
-fec <- data %>%
-  filter(sex =="F") %>%
-  group_by(sample_site,latitude,date,bay) %>%
-  summarise(md=median(wt_adj_fec,na.rm = TRUE)) %>%
-  mutate(latitude = as.numeric(latitude)) %>%
-  ungroup()
-
-bay_colors <- rev(brewer.pal(8, "RdYlGn"))
 
 # Define UI
 ui <- fluidPage(
-  titlePanel("Dynamic Line Graph"),
+  titlePanel("PMAR"),
   sidebarLayout(
     sidebarPanel(
+      # Dropdown to select data type
+      selectInput("data_type", "Select Data Type:",
+                  choices = c("Type 1", "Type 2", "Type 3"), # Replace with your actual data types
+                  selected = "Type 1"),  # Default selection
+      
+      # Checkbox group for selecting bays
       checkboxGroupInput("selected_bays", "Select Bays:", 
-                         choices = unique(fec$bay), 
-                         selected = unique(fec$bay))
+                         choices = unique(data$bay_full_name), 
+                         selected = unique(data$bay_full_name)),
+      # Dynamic selection for sites based on selected bays
+      uiOutput("site_selection")  # Placeholder for dynamic site selection
     ),
+    
     mainPanel(
-      plotOutput("linePlot")
+      plotOutput("linePlot")  # Space for the plot
     )
   )
 )
 
 # Define server logic
-server <- function(input, output) {
-  
+# Define server logic
+server <- function(input, output, session) {
+  # Reactive expression to filter data 
   filteredData <- reactive({
-    req(input$selected_bays) # Ensure input is available
-    fec %>% filter(bay %in% input$selected_bays)
+    req(input$selected_bays)
+    
+    if (input$data_type == "Type 1") {
+      fec %>% filter(bay_full_name %in% input$selected_bays)
+    } else if (input$data_type == "Type 2") {
+      fem %>% filter(bay_full_name %in% input$selected_bays)
+    }
   })
   
+  # Dynamic site selection
+  output$site_selection <- renderUI({
+    req(input$selected_bays)
+    
+    # Get sites corresponding to the selected bays
+    available_sites <- if (input$data_type == "Type 1") {
+      unique(fec$site_full_name[fec$bay_full_name %in% input$selected_bays])
+    } else if (input$data_type == "Type 2") {
+      unique(fem$site_full_name[fem$bay_full_name %in% input$selected_bays])
+    } else {
+      NULL
+    }
+    
+    # Create checkbox group for site selection
+    checkboxGroupInput("selected_sites", "Select Sites:", 
+                       choices = available_sites, 
+                       selected = available_sites)  # Default to all available sites
+  })
+  
+  # Render the plot based on selected data type and sites
   output$linePlot <- renderPlot({
-    data_to_plot <- filteredData()
+    data_to_plot <- filteredData() %>% 
+      filter(site_full_name %in% input$selected_sites)  # Filter by selected sites
     
-    # Find the axis limits from the filtered data
-    xlim <- range(fec$date)
-    ylim <- range(fec$md)
+    # Create a unique list of keys and their corresponding colors and shapes based on the data
+    unique_keys <- unique(data_to_plot$key)
+    filtered_legend <- legend %>% filter(key %in% unique_keys)
     
-    ggplot(data_to_plot, aes(x = date, y = md, 
-                             color = fct_reorder(bay, latitude, .desc = TRUE),
-                             shape = fct_reorder(sample_site, latitude, .desc = TRUE))) +
-      geom_point(size = 5) +
-      geom_line() + 
-      scale_color_manual(values = bay_colors) +
-      labs(color = "Bay", shape = "Site") + 
-      scale_shape_manual(values = seq(0, 14)) + 
-      theme(panel.background = element_rect(fill = "gray70"),  
-            panel.grid.major = element_line(size = 0.5, linetype = 'solid', colour = "gray"), 
-            panel.grid.minor = element_line(size = 0.25, linetype = 'solid', colour = "gray")) +
-      scale_x_date(limits = xlim) +
-      scale_y_continuous(limits = ylim)
+    # Convert key to a factor with levels in the desired order
+    data_to_plot$key <- factor(data_to_plot$key, levels = filtered_legend$key)
+    
+    if (input$data_type == "Type 1") {
+      ggplot(data_to_plot, aes(x = date , y = md, 
+                      fill= key,
+                      shape = key,
+                      color = key)) +
+        geom_point(size = 5, stroke = 1, color = "black") + 
+        geom_line(linewidth = 1) +
+        scale_color_manual(values = filtered_legend$color, guide = "none") +
+        scale_fill_manual(name = "Sites",
+                          labels = filtered_legend$key,
+                          values = filtered_legend$color) + 
+        scale_shape_manual(name = "Sites",
+                           labels = filtered_legend$key,
+                           values = filtered_legend$shape) +
+        scale_y_continuous(limits = c(0,1000000),
+                           breaks = seq(0, 1000000, by = 100000),     
+                           labels = function(x) paste0(x / 1000, "K"))+ 
+        scale_x_date(
+          limits = as.Date(c("2023-11-01", "2024-07-31")),
+          date_breaks = "1 month",              
+          date_labels = "%b"                        
+        ) + 
+        ylab("Eggs Per Grams of Tissue") +
+        theme_minimal()
+      
+    } else if (input$data_type == "Type 2") {
+      ggplot(data_to_plot, aes(x = date , y = n, 
+                      fill= fct_reorder(key,latitude, .desc = TRUE),
+                      shape = fct_reorder(key,latitude, .desc = TRUE),
+                      color = fct_reorder(bay,latitude, .desc = TRUE))) +
+        geom_point(size = 5, stroke = 1, color = "black") + 
+        geom_line(linewidth = 1) +
+        scale_color_manual(values = legend$color,guide = "none") +
+        scale_fill_manual(name = "Sites",
+                          labels = legend$key,
+                          values = legend$color) + 
+        scale_shape_manual(name = "Sites",
+                           labels = legend$key,
+                           values = legend$shape) +
+        theme_minimal()
+    }
+    
   })
 }
-
 # Run the application 
 shinyApp(ui = ui, server = server)

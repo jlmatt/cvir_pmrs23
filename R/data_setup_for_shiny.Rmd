@@ -45,16 +45,41 @@ Add a full name of bay for graphing purposes
 ```{r}
 data <- data %>%
   mutate(bay_full_name = case_when(
-    bay == "GAL" ~ "Galveston Bay", 
-    bay == "COP" ~ "Copano Bay", 
-    bay == "ARA" ~ "Aransas Bay",
-    bay == "ULM" ~ "Upper Laguna Madre", 
-    bay == "CCB" ~ "Corpus Christi Bay",
-    bay == "SAB" ~ "San Antonio Bay",
-    bay == "MGB" ~ "Matagorda Bay",
-    bay == "LLM" ~ "Lower Laguna Madre"
+    bay == "GAL" ~ "Galveston Bay (GAL)", 
+    bay == "COP" ~ "Copano Bay (COP)", 
+    bay == "ARA" ~ "Aransas Bay (ARA)",
+    bay == "ULM" ~ "Upper Laguna Madre (ULM)", 
+    bay == "CCB" ~ "Corpus Christi Bay (CCB)",
+    bay == "SAB" ~ "San Antonio Bay (SAB)",
+    bay == "MGB" ~ "Matagorda Bay (MGB)",
+    bay == "LLM" ~ "Lower Laguna Madre (LLM)"
   ))
 ```
+
+Add a full name of sample site for graphing purposes
+
+```{r}
+data <- data %>%
+  mutate(site_full_name = case_when(
+    sample_site == "MSA" ~ "Mesquite Street Aransas (ARA_MSA)",
+    sample_site == "RPA" ~ "Rock Point Pier (ARA_RPA)",
+    sample_site == "CLP" ~ "Cole Park (CCB_CLP)",
+    sample_site == "NCN" ~ "Nueces Bay Causeway (CCB_NCN)",
+    sample_site == "UVB" ~ "University Beach (CCB_UVB)",
+    sample_site == "NLC" ~ "North Lyndon Johnson Bridge (COP_NLC)",
+    sample_site == "SLC" ~ "South Lyndon Johnson Bridge (COP_SLC)",
+    sample_site == "SAM" ~ "Sammy's Reef (GAL_SAM)",
+    sample_site == "ART" ~ "Arturo Park (LLM_ART)",
+    sample_site == "URP" ~ "University of Rio Pier (LLM_URP)", 
+    sample_site == "BPP" ~ "Bayfront Peninsula Park (SAB_BPP)",
+    sample_site == "KEB" ~ "Keller Bay (MGB_KEB)",
+    sample_site == "BSP" ~ "Bill Sanders Park (SAB_BSP)",
+    sample_site == "SDJ" ~ "Seadrift Jetty (SAB_SDJ)",
+    sample_site == "CNL" ~ "Power Plant Channel (ULM_CNL)",
+    sample_site == "SLM" ~ "Stewart Street (ULM_SLM)"
+  ))
+```
+
 
 Arrange data so latitude is descending
 
@@ -122,7 +147,7 @@ data <- data %>%
 
 ```{r}
 legend <- data %>%
-  group_by(bay, key,shape,color,latitude,bay_full_name) %>%
+  group_by(bay, key,shape,color,latitude,bay_full_name,site_full_name) %>%
   summarise(n=n()) %>%
   arrange(desc(latitude))
 ```
@@ -162,7 +187,7 @@ ggplot(fec, aes(x = date , y = md,
 ```{r}
 fec <- data %>%
   filter(sex =="F") %>%
-  group_by(sample_site,latitude,date,bay,color,key,site_code,shape,bay_full_name) %>%
+  group_by(sample_site,latitude,date,bay,color,key,site_code,shape,bay_full_name,site_full_name) %>%
   summarise(md=mean(wt_adj_fec,na.rm = TRUE)) %>%
   mutate(latitude = as.numeric(latitude)) %>%
   ungroup()
@@ -173,7 +198,7 @@ fec <- data %>%
 ```{r}
 fem <- data %>%
   filter(sex =="F") %>%
-  group_by(sample_site,latitude,date,bay,color,key,site_code,shape,bay_full_name) %>%
+  group_by(sample_site,latitude,date,bay,color,key,site_code,shape,bay_full_name,site_full_name) %>%
   summarise(n=n()) %>%
   mutate(latitude = as.numeric(latitude)) %>%
   ungroup()
