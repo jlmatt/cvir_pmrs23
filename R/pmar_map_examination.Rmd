@@ -1,0 +1,105 @@
+---
+title: "maps"
+author: "Joseph Matt"
+date: "August 11, 2022"
+output: html_document
+---
+
+```{r}
+library(maps)
+library(mapdata)
+library(ggplot2)
+library(tidyverse)
+library(dplyr)
+library(terra)
+library(sf)
+library(ggOceanMaps)
+library(rnaturalearth)
+```
+
+```{r}
+pmar_sites <- readRDS(here::here("shiny","data","data_for_scale_manual.rds")) %>%
+  rename(lat = latitude, lon = longitude) %>%
+  mutate(lat = as.numeric(as.character(lat))) %>%
+  mutate(lon = as.numeric(as.character(lon)))
+```
+
+```{r,fig.height=9,fig.width=7}
+MainStates <- map_data("state")
+
+ggplot()+
+  geom_polygon(data=MainStates,aes(x=long,y=lat,group=group),fill="lightgray", color="black") + 
+  theme_bw()+
+  theme(panel.grid.major = element_blank())+
+  theme(panel.grid.minor = element_blank())+
+  coord_cartesian(xlim=c(-99.830000,-94), ylim = c(25.7,30)) 
+  #geom_text(data = pmar_sites,   
+             #aes(y = lat, x = lon, label= key),
+             #size=10)
+```
+
+
+If reading a shapefile, the data source name (dsn= argument) is the folder (directory) where the shapefile is, and the layer is the name of the shapefile (without the .shp extension). For example to read bounds.shp from C:/Maps, do map <- readOGR(dsn="C:/Maps", layer="bounds"). The logic behind this is that typically one keeps all the shapefiles for a project in one folder (directory).
+
+
+```{r}
+nations <- st_read(here::here("data","raw","ne_10m_land.shp"))
+```
+
+```{r}
+test <- ne_download(scale = 110, type = "land", category = "physical")
+plot(test)
+```
+
+```{r}
+ggplot(test) +
+  geom_sf()
+```
+
+
+```{r}
+??basemap
+```
+
+
+```{r}
+basemap(limits = c(-99.5, -94, 25.5, 30),land.col = "grey80") +   
+  geom_path(data = nations, 
+            aes(x = long, y = lat, group = group), 
+            color = "black", size = 0.25, linetype = "solid") +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
+  geom_text(data = pmar_sites,   
+             aes(y = lat, x = lon, label= id),
+             size=5) 
+  
+
+```
+
+```{r}
+
+presmap<-basemap(limits = c(-99.5, -80, 25, 32),land.col = "grey90") +   
+  #geom_path(data = nations, 
+            #aes(x = long, y = lat, group = group), 
+            #color = "black", size = 0.25, linetype = "solid") +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
+  xlab("")+
+  ylab("")+
+  theme(axis.text=element_text(size=11,color="white"))+
+  scale_x_continuous(limits = c(-99.5, -94.5), expand = c(0, 0)) +
+  scale_y_continuous(limits = c(25.5, 30), expand = c(0, 0))+
+  theme(panel.border=element_blank())+
+  theme(axis.line.y=element_blank())
+presmap
+```
+
+
+
+```{r}
+ggsave('presmap.tiff', plot = presmap, device="tiff",
+  width = 6, height = 4, units = c("in"),
+  dpi = 820)
+```
+
+
+
+

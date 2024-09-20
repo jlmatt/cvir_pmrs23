@@ -1,0 +1,102 @@
+---
+title: "pmrs_examine_raw_data"
+subtitle:
+author: |
+   Texas A&M University-Corpus Christi
+output:
+    github_document:
+    toc: true
+    toc_depth: 2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+library(tidyverse)
+library(here)
+library(janitor)
+library(readxl)
+library(skimr)
+library(RColorBrewer)
+```
+
+```{r}
+data <- readRDS(here::here("data","derived","comb_uncleaned_data.RDS"))
+```
+
+Add meat weight to data
+
+```{r}
+data <- data %>%
+  mutate(meat_weight = shell_weight_and_meat_weight-shell_weight)
+```
+
+Find issues
+
+```{r}
+plot(data$total_weight,data$meat_weight)
+```
+
+Make NA observation of total weight greater than 1000
+
+```{r}
+data <- data %>%
+  mutate(total_weight = if_else(total_weight > 1000,NA,total_weight))
+```
+
+Make NA observation of meat_weight less than 0
+
+```{r}
+data <- data %>%
+  mutate(meat_weight = if_else(meat_weight < 0,NA,meat_weight))
+```
+
+```{r}
+plot(data$total_weight,data$meat_weight)
+```
+
+Make NA observation of shell weight 6.04 but total weight something in 70s
+
+```{r}
+data <- data %>%
+  mutate(shell_weight = if_else(tube_id == "MAY_RPA_2",NA,shell_weight)) %>%
+  mutate(meat_weight = if_else(tube_id == "MAY_RPA_2",NA,meat_weight))
+```
+
+```{r}
+plot(data$total_weight,data$meat_weight)
+```
+ 
+I don't buy the observation of total weight out at 700 +
+
+```{r}
+data <- data %>%
+  mutate(total_weight = if_else(total_weight > 700,NA,total_weight))
+```
+
+# Add wt specific fecundity
+
+```{r}
+data <- data %>%
+  mutate(wt_adj_fec = egg_count/meat_weight)
+```
+
+Found individual with egg count of "0" -- this technically can't be true
+
+```{r}
+data <- data %>%
+  mutate(sex = if_else(egg_count == 0,NA,sex)) %>%
+  mutate(egg_count = if_else(egg_count == 0,NA,egg_count)) %>%
+  mutate(wt_adj_fec = if_else(wt_adj_fec == 0,NA,wt_adj_fec))
+```
+
+Good enough for now, can clean more later
+
+```{r}
+saveRDS(data,here::here("data","derived","clean_data.RDS"))
+```
+
+```{r}
+
+```
+

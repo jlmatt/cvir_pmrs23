@@ -1,0 +1,271 @@
+---
+title: "maps"
+author: "Joseph Matt"
+date: "August 11, 2022"
+output: html_document
+---
+
+```{r}
+library(maps)
+library(mapdata)
+library(ggplot2)
+library(tidyverse)
+library(dplyr)
+library(sf)
+library(rnaturalearth)
+library(rnaturalearthdata)
+library(ggrepel)
+library(rgdal)
+#install.packages("ggstar")
+library(ggstar)
+#remotes::install_github("ropensci/rnaturalearthhires")
+```
+
+
+```{r}
+world <- ne_countries(scale = "medium", returnclass = "sf")
+class(world)
+
+ggplot(data = world) + 
+  geom_sf()
+
+```
+
+```{r}
+state <- map_data("state")
+
+texas <- subset(state, region=="texas")
+```
+
+```{r}
+sort(unique(ggplot2::map_data("world")$region))
+```
+
+
+  27.800583, -97.396378.
+  
+  
+  
+
+```{r}
+tx_map <- ggplot(data=texas, mapping=aes(x=long, y=lat, group=group)) + 
+  coord_fixed(1.3) + 
+  geom_polygon(color='black', fill="gray80",size = 1) + 
+  #geom_polygon(data=washington_county, fill=NA, color="white") + 
+  #geom_polygon(color="black", fill=NA) + 
+  theme_bw()+
+  #ggtitle('Texas Map') + 
+  theme(axis.title.x=element_blank(), axis.text.x=element_blank(), axis.ticks.x=element_blank(),
+        axis.title.y=element_blank(), axis.text.y=element_blank(), axis.ticks.y=element_blank(),
+        panel.border = element_blank(), panel.grid.major = element_blank(),
+panel.grid.minor = element_blank())
+  #geom_text(data = pmar_sites,   
+   #          aes(y = lat, x = lon, label= id),
+    #         size=10)+
+  #geom_star(mapping = aes(x = -97.396378, 27.800583), colour= "skyblue3",fill="skyblue3",size=10,starstroke=0)
+tx_map
+```
+
+```{r}
+ggsave('texas_map.tiff', plot = tx_map, device="tiff",
+  width = 4, height = 6, units = c("in"),
+  dpi = 120)
+```
+
+
+
+
+```{r}
+ggplot(data = world) +
+    geom_sf() +
+    coord_sf(xlim = c(-99.8, -94), ylim = c(25.7, 30), expand = FALSE)
+```
+
+```{r}
+test = read_sf("C:\\Users\\Joey\\Dropbox\\Postdoc\\major-bays\\MajorBays\\MajorBays.shp")
+test2 = read_sf("C:\\Users\\Joey\\Dropbox\\Postdoc\\gould-eco-regions\\GouldEcoRegions\\GouldEcoRegions.shp")
+```
+
+```{r}
+ggplot()+
+  geom_sf(data=test2)+
+  coord_sf(xlim=c(-98,-94), ylim = c(25.7,30),expand=FALSE)
+```
+
+
+
+```{r}
+pmar_sites <- read.table("C:\\Users\\Joey\\Dropbox\\Postdoc\\pmar_lat_longs.txt") %>%
+  rename(lat=V1,lon=V2,id=V3) %>%
+  mutate(lat = as.numeric(as.character(lat))) %>%
+  mutate(lon = as.numeric(as.character(lon)))
+
+```
+
+
+
+```{r,fig.height=9,fig.width=7}
+MainStates <- map_data("state")
+
+ggplot()+
+  geom_polygon(data=MainStates,aes(x=long,y=lat,group=group),fill="lightgray", color="black") + 
+  theme_bw()+
+  theme(panel.grid.major = element_blank())+
+  theme(panel.grid.minor = element_blank())+
+  coord_cartesian(xlim=c(-99.830000,-94), ylim = c(25.7,30)) +
+  geom_text(data = pmar_sites,   
+             aes(y = lat, x = lon, label= id),
+             size=10)
+```
+
+
+
+
+
+```{r, eval=FALSE}
+install.packages("ggOceanMapsData", repos = c("https://mikkovihtakari.github.io/drat", "https://cloud.r-project.org"))
+```
+
+```{r}
+library(ggOceanMapsData)
+library(ggOceanMaps)
+
+
+
+basemap(limits = c(-98, -94, 40, 80))
+```
+
+```{r}
+basemap(limits = c(-99, -94, 24, 30))
+```
+
+If reading a shapefile, the data source name (dsn= argument) is the folder (directory) where the shapefile is, and the layer is the name of the shapefile (without the .shp extension). For example to read bounds.shp from C:/Maps, do map <- readOGR(dsn="C:/Maps", layer="bounds"). The logic behind this is that typically one keeps all the shapefiles for a project in one folder (directory).
+
+
+```{r}
+nations <- readOGR(dsn = "C:/Users/Joey/Dropbox/Postdoc/ne_10m_admin_0_countries", layer = "ne_10m_admin_0_countries")
+```
+
+```{r}
+pmar_sites <- read.table("C:\\Users\\Joey\\Dropbox\\Postdoc\\pmar_lat_longs.txt") %>%
+  rename(lat=V1,lon=V2,id=V3) %>%
+  mutate(lat = as.numeric(as.character(lat))) %>%
+  mutate(lon = as.numeric(as.character(lon)))
+```
+
+
+
+```{r}
+basemap(limits = c(-99.5, -94, 25.5, 30),land.col = "grey80") +   
+  geom_path(data = nations, 
+            aes(x = long, y = lat, group = group), 
+            color = "black", size = 0.25, linetype = "solid") +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
+  geom_text(data = pmar_sites,   
+             aes(y = lat, x = lon, label= id),
+             size=5) 
+  
+```
+
+```{r}
+pmap<-basemap(limits = c(-99.5, -94.5, 25.5, 30),land.col = "grey90") +   
+  geom_path(data = nations, 
+            aes(x = long, y = lat, group = group), 
+            color = "black", size = 0.25, linetype = "solid") +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
+  theme(panel.border = element_blank()) +
+  xlab("")+
+  ylab("")+
+  #theme(axis.text=element_text(size=11,color="black"))+
+  scale_x_continuous(limits = c(-99.5, -94.5), expand = c(0, 0)) +
+  scale_y_continuous(limits = c(25.5, 30), expand = c(0, 0)) +
+    theme(
+  axis.line = element_blank(),      # Remove axis lines
+  axis.text = element_blank(),      # Remove axis labels
+  axis.title = element_blank(),     # Remove axis titles
+  axis.ticks = element_blank()      # Remove axis tick marks
+)
+pmap
+```
+
+
+```{r}
+ggsave('costal_bend_map.tiff', plot = pmap, device="tiff",
+  width = 6, height = 4, units = c("in"),
+  dpi = 820)
+```
+
+
+```{r}
+
+pmap<-basemap(limits = c(-99.5, -94.5, 25.5, 30),land.col = "grey90") +   
+  geom_path(data = nations, 
+            aes(x = long, y = lat, group = group), 
+            color = "black", size = 0.25, linetype = "solid") +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
+  geom_point(data = pmar_sites,   
+             aes(y = lat, x = lon),
+             size=2) +
+  geom_label_repel(
+    aes(y=lat, x=lon,label = id),
+    data = ~ pmar_sites,
+    color = "black", fill= NA, min.segment.length = 0,label.size = NA,size=7)+
+  xlab("")+
+  ylab("")+
+  theme(axis.text=element_text(size=11,color="black"))+
+  scale_x_continuous(limits = c(-99.5, -94.5), expand = c(0, 0)) +
+  scale_y_continuous(limits = c(25.5, 30), expand = c(0, 0)) 
+pmap
+```
+
+```{r}
+ggsave('pmap.tiff', plot = pmap, device="tiff",
+  width = 4, height = 6, units = c("in"),
+  dpi = 820)
+```
+
+
+```{r}
+basemap(limits = c(-99.5, -94, 25.5, 30),land.col = "grey80") +   
+  geom_path(data = nations, 
+            aes(x = long, y = lat, group = group), 
+            color = "black", size = 0.25, linetype = "solid") +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
+  geom_text(data = pmar_sites,   
+             aes(y = lat, x = lon, label= id),
+             size=5) 
+  
+
+```
+
+
+
+
+```{r}
+
+presmap<-basemap(limits = c(-99.5, -80, 25, 32),land.col = "grey90") +   
+  #geom_path(data = nations, 
+            #aes(x = long, y = lat, group = group), 
+            #color = "black", size = 0.25, linetype = "solid") +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
+  xlab("")+
+  ylab("")+
+  theme(axis.text=element_text(size=11,color="white"))+
+  scale_x_continuous(limits = c(-99.5, -94.5), expand = c(0, 0)) +
+  scale_y_continuous(limits = c(25.5, 30), expand = c(0, 0))+
+  theme(panel.border=element_blank())+
+  theme(axis.line.y=element_blank())
+presmap
+```
+
+
+
+```{r}
+ggsave('presmap.tiff', plot = presmap, device="tiff",
+  width = 6, height = 4, units = c("in"),
+  dpi = 820)
+```
+
+
+
+

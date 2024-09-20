@@ -1,14 +1,24 @@
 Outline for PMRS23 Progress Report
 
 1) Project Description
-  * What we were interested in
-  * Why we were interested in it
+Both reef restoration and aquaculture of oysters benefit from understanding the state of wild populations throughout the year. For restoration purposes, an understanding of population structure, levels of genetic diversity, disease loads, and timing of reproduction are necessary to match wild and augmented oysters and to maximize the effectiveness of habitat restoration. For commercial aquaculture, this same information helps to minimize aquaculture-wild interactions and inform farm stocking decisions, broodstock sourcing, and farm-siting policies. 
 
 2) Methods
- * What we did
+
+Wild oysters were sampled monthly from November 2023 to October 2024 from eight bays along the Texas coast (Figure 1). Sample locations were multiple sites in the Lower Laguna Madre, Upper Laguna Madre, Corpus Christi Bay, Copano Bay, Aransas Bay, San Antonio Bay, Matagorda Bay, Galveston Bay (Figure 1). Fifteen to twenty five oysters (2 inches or larger) were sampled from each site per month, summing to 145 to 225 oyster per bay. 
+
+Size and fecundity was measured for each adult oyster. Fecundity was
+estimated for each female oyster by fully dissecting the gametes and counting subsamples of the total gamete quantity. Fecundity in females is reported per gram of oyster meat.
+
+Each oyster was swabbed for measuring disease burden and population genetic analysis. Swabs will be used for quantification of the number of cells of Perksinsus marinus using real time qPCR assays. Genetic analysis will involve genetic population assignment, estimates of genetic diversity, and estimates of genetic relatedness.  
  
 3) Results
  * What we found: Three big things
+ 
+ 1) Gametes were 
+ 
  * Show-off Shiny app
 
 4) Next Steps
+
+

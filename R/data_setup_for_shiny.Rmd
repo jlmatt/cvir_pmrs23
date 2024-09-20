@@ -24,6 +24,25 @@ library(RColorBrewer)
 data <- readRDS(here::here("data","derived","clean_data.RDS"))
 ```
 
+# Adjust data for analysis
+
+```{r}
+data <- data %>%
+  mutate(sex = if_else(is.na(sperm_rating),sex,"M"))
+```
+
+
+```{r}
+data <- data %>%
+  mutate(sex = if_else(sperm_rating == 0,NA,sex)) %>%
+  mutate(sex = if_else(is.na(egg_count),sex,"F")) %>%
+  mutate(sex = if_else(egg_count < 10,NA,sex))
+```
+
+
+
+
+
 # Adjust "data" for graphing
 
 Take out IND data, doesn't add anything
@@ -84,22 +103,22 @@ data <- data %>%
 ```{r}
 data <- data %>%
   mutate(site_full_name = case_when(
-    sample_site == "MSA" ~ "Mesquite Street Aransas (ARA_MSA)",
-    sample_site == "RPA" ~ "Rock Point Pier (ARA_RPA)",
-    sample_site == "CLP" ~ "Cole Park (CCB_CLP)",
-    sample_site == "NCN" ~ "Nueces Bay Causeway (CCB_NCN)",
-    sample_site == "UVB" ~ "University Beach (CCB_UVB)",
-    sample_site == "NLC" ~ "North Lyndon Johnson Bridge (COP_NLC)",
-    sample_site == "SLC" ~ "South Lyndon Johnson Bridge (COP_SLC)",
-    sample_site == "SAM" ~ "Sammy's Reef (GAL_SAM)",
-    sample_site == "ART" ~ "Arturo Park (LLM_ART)",
-    sample_site == "URP" ~ "University of Rio Pier (LLM_URP)", 
-    sample_site == "BPP" ~ "Bayfront Peninsula Park (MGB_BPP)",
-    sample_site == "KEB" ~ "Keller Bay (MGB_KEB)",
-    sample_site == "BSP" ~ "Bill Sanders Park (SAB_BSP)",
-    sample_site == "SDJ" ~ "Seadrift Jetty (SAB_SDJ)",
-    sample_site == "CNL" ~ "Power Plant Channel (ULM_CNL)",
-    sample_site == "SLM" ~ "Stewart Street (ULM_SLM)"
+    sample_site == "MSA" ~ "Mesquite Str. Aransas (MSA)",
+    sample_site == "RPA" ~ "Rock Point Pier (RPA)",
+    sample_site == "CLP" ~ "Cole Park (CLP)",
+    sample_site == "NCN" ~ "Nueces Bay Causeway (NCN)",
+    sample_site == "UVB" ~ "University Beach (UVB)",
+    sample_site == "NLC" ~ "North L. Johnson Bridge (NLC)",
+    sample_site == "SLC" ~ "South L. Johnson Bridge (SLC)",
+    sample_site == "SAM" ~ "Sammy's Reef (SAM)",
+    sample_site == "ART" ~ "Arturo Park (ART)",
+    sample_site == "URP" ~ "University of Rio Pier (URP)", 
+    sample_site == "BPP" ~ "Bayfront Peninsula Park (BPP)",
+    sample_site == "KEB" ~ "Keller Bay (KEB)",
+    sample_site == "BSP" ~ "Bill Sanders Park (BSP)",
+    sample_site == "SDJ" ~ "Seadrift Jetty (SDJ)",
+    sample_site == "CNL" ~ "Power Plant Channel (CNL)",
+    sample_site == "SLM" ~ "Stewart Street (SLM)"
   ))
 ```
 
@@ -134,6 +153,14 @@ data <-data %>%
     sample_site == "CNL" ~ 1,
     sample_site == "SLM" ~ 2
   ))
+```
+
+# Make latitude and longitude numeric
+
+```{r}
+data <- data %>%
+  mutate(latitude = as.numeric(latitude)) %>%
+  mutate(longitude = as.numeric(longitude))
 ```
 
 # Combine bay and sample site
@@ -171,7 +198,7 @@ data <- data %>%
 
 ```{r}
 legend <- data %>%
-  group_by(bay, key,shape,color,latitude,bay_full_name,site_full_name) %>%
+  group_by(bay, key,shape,color,latitude,longitude,bay_full_name,site_full_name) %>%
   summarise(n=n()) %>%
   arrange(desc(latitude))
 ```
@@ -210,23 +237,85 @@ ggplot(fec, aes(x = date , y = md,
 
 ```{r}
 fec <- data %>%
-  filter(sex =="F") %>%
   group_by(sample_site,latitude,date,bay,color,key,site_code,shape,bay_full_name,site_full_name) %>%
-  summarise(md=mean(wt_adj_fec,na.rm = TRUE)) %>%
+  summarise(md=mean(wt_adj_fec,na.rm = TRUE),
+            n_fem = sum(sex == "F", na.rm = TRUE)) %>%
+  mutate(md = if_else(is.na(md),0,md)) %>%
   mutate(latitude = as.numeric(latitude)) %>%
   ungroup()
 ```
 
-## Number of females
+## Proportion of Females
 
 ```{r}
 fem <- data %>%
-  filter(sex =="F") %>%
   group_by(sample_site,latitude,date,bay,color,key,site_code,shape,bay_full_name,site_full_name) %>%
-  summarise(n=n()) %>%
+  summarise(n=n(),
+            n_fem = sum(sex == "F", na.rm = TRUE),
+            prop_fem = n_fem/n) %>%
   mutate(latitude = as.numeric(latitude)) %>%
   ungroup()
 ```
+
+## Proportion of Males
+
+```{r}
+mal <- data %>%
+  group_by(sample_site,latitude,date,bay,color,key,site_code,shape,bay_full_name,site_full_name) %>%
+  summarise(n=n(),
+            n_mal = sum(sex == "M", na.rm = TRUE),
+            prop_male = n_mal/n) %>%
+  mutate(latitude = as.numeric(latitude)) %>%
+  ungroup()
+```
+
+## Sperm rating
+
+```{r}
+rat <- data %>%
+  group_by(sample_site,latitude,date,bay,color,key,site_code,shape,bay_full_name,site_full_name) %>%
+  summarise(rating = mean(sperm_rating,na.rm = TRUE)) %>%
+  mutate(latitude = as.numeric(latitude)) %>%
+  mutate(rating = if_else(is.na(rating),0,rating)) %>%
+  ungroup()
+```
+
+## Proportion of Reproductively Active Individuals
+
+```{r}
+rep <- data %>%
+  group_by(sample_site,latitude,date,bay,color,key,site_code,shape,bay_full_name,site_full_name) %>%
+  summarise(n=n(),
+            n_mal = sum(sex == "M", na.rm = TRUE),
+            n_fem = sum(sex == "F", na.rm = TRUE),
+            active = (n_mal+n_fem)/n) %>%
+  mutate(latitude = as.numeric(latitude)) %>%
+  ungroup()
+```
+
+## Temperature
+
+```{r}
+temp <- data %>%
+  group_by(sample_site,latitude,date,bay,color,key,site_code,shape,bay_full_name,site_full_name) %>%
+  summarise(
+    m_temp = mean(temp, na.rm = TRUE)) %>%
+  mutate(latitude = as.numeric(latitude)) %>%
+  ungroup()
+```
+
+## Salinity
+
+```{r}
+sal <- data %>%
+  group_by(sample_site,latitude,date,bay,color,key,site_code,shape,bay_full_name,site_full_name) %>%
+  summarise(
+    m_sal = mean(salinity, na.rm = TRUE)) %>%
+  mutate(latitude = as.numeric(latitude)) %>%
+  ungroup()
+```
+
+
 
 # Save the following for shiny apps:
 
@@ -247,6 +336,11 @@ Datasets to choose from in app
 ```{r}
 saveRDS(fec, here::here("shiny","data","weight_adjusted_fecundity.rds"))
 saveRDS(fem, here::here("shiny","data","number_of_females.rds"))
+saveRDS(mal, here::here("shiny","data","number_of_males.rds"))
+saveRDS(rat, here::here("shiny","data","rat.rds"))
+saveRDS(rep, here::here("shiny","data","rep.rds"))
+saveRDS(temp, here::here("shiny","data","temp.rds"))
+saveRDS(sal, here::here("shiny","data","sal.rds"))
 ```
 
 ```{r}
