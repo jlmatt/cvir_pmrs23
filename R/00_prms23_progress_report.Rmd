@@ -1,3 +1,5 @@
+
+
 Outline for PMRS23 Progress Report
 
 1) Project Description
@@ -13,11 +15,18 @@ estimated for each female oyster by fully dissecting the gametes and counting su
 Each oyster was swabbed for measuring disease burden and population genetic analysis. Swabs will be used for quantification of the number of cells of Perksinsus marinus using real time qPCR assays. Genetic analysis will involve genetic population assignment, estimates of genetic diversity, and estimates of genetic relatedness.  
  
 3) Results
- * What we found: Three big things
+ * Three major observations:
  
- 1) Gametes were 
- 
- * Show-off Shiny app
+ 1) In general, most sites had lowest proportion of gametogenically active oysters (oysters with gametes) in Jan/Feb
+ * [select Matagorda Bay, Gametogenically Active] No reproductively active oysters were found in MGB in January, however about 50 percent were found in late February/early March, which included females and males. 
+ * [select Upper Laguna Madre, Gametogenically active] Exceptions include an Upper Laguna Madre site near the Flour Bluff hatchery, which never dipped below 0.4 proportion of active oysters. Females and and males could be found in winter at this site.
+
+2) In general, most sites had the highest proportion of gametogenically active oysters in April/May.
+  * The highest proportion of gametogenically active oysters at MGB was in early May, which also was the case for southern zones.
+  
+3) Females in northern zones (MGB, GAL) become more fecundthan those from southern zone (ULM, LLM)
+  * Females in northern zones reached nearly double the maximum fecundity reached by oysters in southern zones. 
+
 
 4) Next Steps
 

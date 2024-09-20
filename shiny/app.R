@@ -26,7 +26,7 @@ ui <- fluidPage(
       selectInput("data_type", "Select Data Type:",
                   choices = c("Female Fecundity", 
                               "Sperm Rating", 
-                              "Gametogenically Active",
+                              "Reproductively Active",
                               "Temperature",
                               "Salinity"), # Replace with your actual data types
                   selected = "Female Fecundity"),  # Default selection
@@ -59,7 +59,7 @@ server <- function(input, output, session) {
       fec %>% filter(bay_full_name %in% input$selected_bays)
     } else if (input$data_type == "Sperm Rating") {
       rat %>% filter(bay_full_name %in% input$selected_bays)
-    } else if (input$data_type == "Gametogenically Active") {
+    } else if (input$data_type == "Reproductively Active") {
       rep %>% filter(bay_full_name %in% input$selected_bays)
     } else if (input$data_type == "Temperature") {
       temp %>% filter(bay_full_name %in% input$selected_bays)
@@ -149,7 +149,7 @@ server <- function(input, output, session) {
         xlab("Date") +
         theme_minimal()
       
-    } else if (input$data_type == "Gametogenically Active") {
+    } else if (input$data_type == "Reproductively Active") {
       ggplot(data_to_plot, aes(x = date , y = active, 
                                fill= key,
                                shape = key,
@@ -170,7 +170,7 @@ server <- function(input, output, session) {
           date_breaks = "1 month",              
           date_labels = "%b"                        
         ) + 
-        ylab("Proportion Gametogenically Active") +
+        ylab("Proportion Reproductively Active") +
         xlab("Date") +
         theme_minimal()
       
@@ -223,6 +223,7 @@ server <- function(input, output, session) {
         ylab("Salinity (ppt)") +
         xlab("Date") +
         theme_minimal()
+    
     }
     
   })

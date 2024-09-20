@@ -1,0 +1,67 @@
+---
+title: "Evaluating reproductive timing, population genetics, and disease load in Texas oysters"
+author: "Progress Report"
+output:
+  pdf_document: default
+  html_document:
+    chunk_output_type: console
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+
+# Project Description
+
+Both reef restoration and aquaculture of oysters benefit from understanding the state of wild populations throughout the year. For restoration purposes, an understanding of population structure, levels of genetic diversity, disease loads, and timing of reproduction are necessary to match wild and augmented oysters and to maximize the effectiveness of habitat restoration. For commercial aquaculture, this same information helps to minimize aquaculture-wild interactions and inform farm stocking decisions, broodstock sourcing, and farm-siting policies. 
+
+# Methods
+
+Wild oysters were sampled monthly from November 2023 to October 2024 from eight bays along the Texas coast (Figure 1). 
+
+![Fig 1](/home/shared/cvir/analysis/cvir_pmrs23/data/raw/pmar_progress_report_fig1.png "Fig1"))
+
+Sample locations were multiple sites in the Lower Laguna Madre, Upper Laguna Madre, Corpus Christi Bay, Copano Bay, Aransas Bay, San Antonio Bay, Matagorda Bay, Galveston Bay (Figure 1). Fifteen to twenty five oysters (2 inches or larger) were sampled from each site per month, summing to 145 to 225 oyster per bay. 
+
+Size and fecundity was measured for each adult oyster. Fecundity was
+estimated for each female oyster by fully dissecting the gametes and counting subsamples of the total gamete quantity. Fecundity in females is reported per gram of oyster meat.
+
+Each oyster was swabbed for measuring disease burden and population genetic analysis. Swabs will be used for quantification of the number of cells of Perksinsus marinus using real time qPCR assays. Genetic analysis will involve genetic population assignment, estimates of genetic diversity, and estimates of genetic relatedness.  
+ 
+# Results
+
+We made an interactive app to make exploring the fecundity and site data easier.  The app is available here: (Chris -- how do you think we should best host the shiny app?)
+
+## Three major observations:
+ 
+1) Most sites had the lowest proportion of reproductively active oysters (oysters with gametes) in Janurary or early Feburary.
+
+  * For example, no reproductively active oysters were found in MGB in January, however about 50 percent were found in late February/early March.
+
+  * Exceptions include an Upper Laguna Madre site near the Flour Bluff hatchery, which never had less than 40% active oysters. Females and and males were found through the winter at this site.  
+
+2) Most sites had the highest proportion of reproductively active oysters in April/May.
+  
+  * The highest proportion of reproductively active oysters at MGB was in early May, which also was the case the Upper and Lower Laguna Madre.
+  
+3) Females in northern sites become more fecund than those from southern sites 
+
+  * Females in from Matagorda Bay reached more than double the maximum fecundity of oysters in southern sites.
+
+
+# Next Steps
+
+
+1) Genetic analysis 
+
+  * We are in the process of genotyping all oysters collected in April (n = 188) for the first look at the genetics of oysters at all our sampling sites.  We expect to have that genetic analysis completed in October.
+  
+2) Disease burden
+
+  * We have started developing a qPCR assay for Perkinsus marinus at TAMUCC that will allow us to measure the number of P. marinus cells in all sampled oysters. 
+  
+3) Multivariate analysis
+
+  * The data from this project is the subject of a masters thesis that aims to analyze the relationship among disease burden, genetics, and reproductive status. 
+  
