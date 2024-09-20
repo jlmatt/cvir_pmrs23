@@ -18,8 +18,8 @@ ui <- fluidPage(
     sidebarPanel(
       # Dropdown to select data type
       selectInput("data_type", "Select Data Type:",
-                  choices = c("Type 1", "Type 2", "Type 3"), # Replace with your actual data types
-                  selected = "Type 1"),  # Default selection
+                  choices = c("Fecundity", "Females", "Males"), # Replace with your actual data types
+                  selected = "Fecundity"),  # Default selection
       
       # Checkbox group for selecting bays
       checkboxGroupInput("selected_bays", "Select Bays:", 
@@ -42,9 +42,9 @@ server <- function(input, output, session) {
   filteredData <- reactive({
     req(input$selected_bays)
     
-    if (input$data_type == "Type 1") {
+    if (input$data_type == "Fecundity") {
       fec %>% filter(bay_full_name %in% input$selected_bays)
-    } else if (input$data_type == "Type 2") {
+    } else if (input$data_type == "Females") {
       fem %>% filter(bay_full_name %in% input$selected_bays)
     }
   })
@@ -54,10 +54,19 @@ server <- function(input, output, session) {
     req(input$selected_bays)
     
     # Get sites corresponding to the selected bays
-    available_sites <- if (input$data_type == "Type 1") {
-      unique(fec$site_full_name[fec$bay_full_name %in% input$selected_bays])
-    } else if (input$data_type == "Type 2") {
-      unique(fem$site_full_name[fem$bay_full_name %in% input$selected_bays])
+    available_sites <-   
+      if (input$data_type == "Fecundity") {
+      fec %>%
+        filter(bay_full_name %in% input$selected_bays) %>%
+        arrange(desc(latitude)) %>%
+        pull(site_full_name) %>%
+        unique()
+    } else if (input$data_type == "Females") {
+      fem %>%
+        filter(bay_full_name %in% input$selected_bays) %>%
+        arrange(desc(latitude)) %>%
+        pull(site_full_name) %>%
+        unique()
     } else {
       NULL
     }
@@ -80,7 +89,7 @@ server <- function(input, output, session) {
     # Convert key to a factor with levels in the desired order
     data_to_plot$key <- factor(data_to_plot$key, levels = filtered_legend$key)
     
-    if (input$data_type == "Type 1") {
+    if (input$data_type == "Fecundity") {
       ggplot(data_to_plot, aes(x = date , y = md, 
                       fill= key,
                       shape = key,
@@ -105,7 +114,7 @@ server <- function(input, output, session) {
         ylab("Eggs Per Grams of Tissue") +
         theme_minimal()
       
-    } else if (input$data_type == "Type 2") {
+    } else if (input$data_type == "Females") {
       ggplot(data_to_plot, aes(x = date , y = n, 
                       fill= fct_reorder(key,latitude, .desc = TRUE),
                       shape = fct_reorder(key,latitude, .desc = TRUE),
