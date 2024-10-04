@@ -1,3 +1,5 @@
+## Can't get the screenshot to download normally or without the map overtaking the image.
+
 library(shiny)
 library(bslib)
 library(ggplot2)
@@ -21,34 +23,39 @@ legend <- readRDS(here("shiny", "data", "data_for_scale_manual.rds"))
 # Define UI
 ui <- fluidPage(
   titlePanel("PMAR Wild Oyster Survey"),
-  sidebarLayout(
-    sidebarPanel(
-      # Dropdown to select data type
-      selectInput("data_type", "Select Data Type:",
-                  choices = c("Female Fecundity", 
-                              "Sperm Rating", 
-                              "Reproductively Active",
-                              "Temperature",
-                              "Salinity"), # Replace with your actual data types
-                  selected = "Female Fecundity"),  # Default selection
-      
-      # Checkbox group for selecting bays
-      checkboxGroupInput("selected_bays", "Select Bays:", 
-                         choices = unique(data$bay_full_name), 
-                         selected = data %>% 
-                           filter(bay %in% c("GAL","LLM")) %>%
-                           pull(bay_full_name)),
-      # Dynamic selection for sites based on selected bays
-      uiOutput("site_selection"),  # Placeholder for dynamic site selection
-    
-      ), #end of sidebarPanel
-    
-    mainPanel(
-      plotOutput("linePlot"),  # Space for the plot
-      leafletOutput("map")      # Space for the map
-) # end of mainpanel
-) #end of sidebarLayout
-) #end of fluidpage
+  div(id = "screenshotArea", # Assign an ID for the screenshot
+      sidebarLayout(
+        sidebarPanel(
+          # Dropdown to select data type
+          selectInput("data_type", "Select Data Type:",
+                      choices = c("Female Fecundity", 
+                                  "Sperm Rating", 
+                                  "Reproductively Active",
+                                  "Temperature",
+                                  "Salinity"), # Replace with your actual data types
+                      selected = "Female Fecundity"),  # Default selection
+          
+          # Checkbox group for selecting bays
+          checkboxGroupInput("selected_bays", "Select Bays:", 
+                             choices = unique(data$bay_full_name), 
+                             selected = data %>% 
+                               filter(bay %in% c("GAL","LLM")) %>%
+                               pull(bay_full_name)),
+          # Dynamic selection for sites based on selected bays
+          uiOutput("site_selection"),  # Placeholder for dynamic site selection
+          
+          # Download button for screenshot
+          downloadButton("download_screenshot","Download Screenshot") 
+        ),
+        
+        mainPanel(
+          plotOutput("linePlot"),  # Space for the plot
+          leafletOutput("map")      # Space for the map
+        )
+      )
+  )
+)
+
 # Define server logic
 server <- function(input, output, session) {
   # Reactive expression to filter data 
@@ -100,9 +107,9 @@ server <- function(input, output, session) {
     
     if (input$data_type == "Female Fecundity") {
       ggplot(data_to_plot, aes(x = date , y = md, 
-                      fill= key,
-                      shape = key,
-                      color = key)) +
+                               fill= key,
+                               shape = key,
+                               color = key)) +
         geom_point(size = 5, stroke = 1, color = "black") + 
         geom_line(linewidth = 1) +
         scale_color_manual(values = filtered_legend$color, guide = "none") +
@@ -223,7 +230,7 @@ server <- function(input, output, session) {
         ylab("Salinity (ppt)") +
         xlab("Date") +
         theme_minimal()
-    
+      
     }
     
   })
@@ -247,6 +254,15 @@ server <- function(input, output, session) {
                 lat2 = max(data$latitude))
   }) 
   
+  # Add the download handler for the screenshot
+  output$download_screenshot <- downloadHandler(
+    filename = function() {
+      paste("screenshot-", Sys.Date(), ".png", sep = "")
+    },
+    content = function(file) {
+      screenshot(selector = "#screenshotArea", filename = file)
+    }
+  )
 }
 # Run the application 
 shinyApp(ui = ui, server = server)

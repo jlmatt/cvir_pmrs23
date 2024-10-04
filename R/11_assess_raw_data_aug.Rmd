@@ -1,5 +1,5 @@
 ---
-title: "pmrs_data_assessment_june"
+title: "pmrs_data_assessment_aug"
 subtitle:
 author: |
    Texas A&M University-Corpus Christi
@@ -20,7 +20,7 @@ library(skimr)
 ```
 
 ```{r}
-data <- read_xlsx(here::here("data", "raw", "pmar1_survey_data_june_2024.xlsx")) %>%
+data <- read_xlsx(here::here("data", "raw", "pmar1_survey_data_aug_2024.xlsx")) %>%
   janitor::clean_names()  %>%
   mutate(across(everything(), as.character)) %>%
   mutate(salinity = as.numeric(salinity)) %>%
@@ -58,6 +58,10 @@ data <- data %>%
 # Save an RDS version
 
 ```{r}
-saveRDS(data,here::here("data","derived","june_data.rds"))
+saveRDS(data,here::here("data","derived","aug_data.rds"))
+```
+
+```{r}
+
 ```
 

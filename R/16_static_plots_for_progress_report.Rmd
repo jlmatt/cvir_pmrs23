@@ -1,0 +1,24 @@
+
+```{r}
+library(shiny)
+library(bslib)
+library(ggplot2)
+library(tidyverse)
+library(here)
+library(leaflet)
+library(plotly)
+```
+
+
+```{r}
+# Load data
+data <- readRDS(here("shiny", "data", "data_for_shiny.rds"))
+fec <- readRDS(here("shiny", "data", "weight_adjusted_fecundity.rds"))
+rat <- readRDS(here("shiny", "data", "rat.rds"))
+rep <- readRDS(here("shiny", "data", "rep.rds"))
+temp <-readRDS(here("shiny", "data", "temp.rds"))
+sal <-readRDS(here("shiny", "data", "sal.rds"))
+legend <- readRDS(here("shiny", "data", "data_for_scale_manual.rds"))
+
+```
+

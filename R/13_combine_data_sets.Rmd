@@ -40,8 +40,10 @@ mar <- readRDS(here("data","derived", "march_data.rds"))
 apr <- readRDS(here("data","derived", "april_data.rds"))
 may <- readRDS(here("data","derived", "may_data.rds"))
 jun <- readRDS(here("data","derived", "june_data.rds"))
+jul <- readRDS(here("data","derived", "july_data.rds"))
+aug <- readRDS(here("data","derived", "aug_data.rds"))
 
-data <- bind_rows(oct,nov,dec,jan,feb,mar,apr,may,jun)
+data <- bind_rows(oct,nov,dec,jan,feb,mar,apr,may,jun,jul,aug)
 ```
 
 Fix sample_sites in collection data

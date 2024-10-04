@@ -5,14 +5,10 @@ output:
   pdf_document: default
   html_document:
     chunk_output_type: console
-header-includes:
-  - \usepackage{float}
-  - \floatplacement{figure}{H}
 ---
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(echo = FALSE)
-library(float)
 ```
 
 
@@ -24,9 +20,7 @@ Both reef restoration and aquaculture of oysters benefit from understanding the 
 
 Wild oysters were sampled monthly from October 2023 to September 2024 from eight bays along the Texas coast (Figure 1). 
 
-```{r, echo=FALSE, out.width='100%', fig.cap="Fig 1", fig.pos = "H"}
-knitr::include_graphics("/home/shared/cvir/analysis/cvir_pmrs23/data/raw/pmar_progress_report_fig1.png")
-```
+![Fig 1](/home/shared/cvir/analysis/cvir_pmrs23/data/raw/pmar_progress_report_fig1.png "Fig1"))
 
 Sample locations were multiple sites in the Lower Laguna Madre, Upper Laguna Madre, Corpus Christi Bay, Copano Bay, Aransas Bay, San Antonio Bay, Matagorda Bay, Galveston Bay (Figure 1). Fifteen to twenty five oysters (2 inches or larger) were sampled from each site per month, summing to 145 to 225 oyster per bay per month. 
 
@@ -47,9 +41,10 @@ The data presented below is
 
   * For example, no reproductively active oysters were found in MGB in January, however about 50 percent were found in late February/early March (Fig. 2).
 
-```{r, echo=FALSE, out.width='100%', fig.cap="Fig 2"}
-knitr::include_graphics("/home/shared/cvir/analysis/cvir_pmrs23/data/raw/test_screenshot.png")
-```
+
+
+
+
 
   * Exceptions include an Upper Laguna Madre site near the Flour Bluff hatchery, which never had less than 40% active oysters. Females and and males were found through the winter at this site.  
 

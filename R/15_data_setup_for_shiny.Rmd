@@ -342,17 +342,3 @@ saveRDS(rep, here::here("shiny","data","rep.rds"))
 saveRDS(temp, here::here("shiny","data","temp.rds"))
 saveRDS(sal, here::here("shiny","data","sal.rds"))
 ```
-
-```{r}
-range(fec$md,na.rm=TRUE)
-```
-
-```{r}
-str(fec$date)
-```
-
-
-```{r}
-legend
-```
-

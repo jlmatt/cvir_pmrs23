@@ -63,15 +63,23 @@ data <- data %>%
   mutate(meat_weight = if_else(tube_id == "MAY_RPA_2",NA,meat_weight))
 ```
 
-```{r}
-plot(data$total_weight,data$meat_weight)
-```
  
 I don't buy the observation of total weight out at 700 +
 
 ```{r}
 data <- data %>%
   mutate(total_weight = if_else(total_weight > 700,NA,total_weight))
+```
+
+I don't buy the observation of the meat weight 80 +
+
+```{r}
+data <- data %>%
+  mutate(meat_weight = if_else(meat_weight > 80,NA,meat_weight))
+```
+
+```{r}
+plot(data$total_weight,data$meat_weight)
 ```
 
 # Add wt specific fecundity
