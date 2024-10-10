@@ -1,6 +1,7 @@
 ---
 title: "Evaluating reproductive timing, population genetics, and disease load in Texas oysters"
 author: "Progress Report"
+date: "`r Sys.Date()`"
 output:
   pdf_document: default
   html_document:
@@ -13,67 +14,110 @@ header-includes:
 ```{r, include = FALSE}
 knitr::opts_chunk$set(echo = FALSE)
 library(float)
+library(tidyverse)
+library(knitr)
 ```
 
 
 # Project Description
 
-Both reef restoration and aquaculture of oysters benefit from understanding the state of wild populations throughout the year. For restoration purposes, an understanding of genetic population structure, levels of genetic diversity, disease loads, and timing of reproduction are necessary to match wild and augmented oysters and to maximize the effectiveness of habitat restoration. For commercial aquaculture, this same information helps to minimize aquaculture-wild interactions and informbroodstock sourcing, farm stocking decisions, and farm-siting policies. 
+Both reef restoration and aquaculture of oysters benefit from an understanding of the local wild population. For restoration purposes, an understanding of genetic population structure, levels of genetic diversity, disease loads, and timing of reproduction are necessary to match wild and augmented oysters and to maximize the effectiveness of habitat restoration. For commercial aquaculture, this same information helps to minimize aquaculture-wild interactions and inform broodstock sourcing, farm stocking decisions, and farm-siting policies. 
 
 # Methods
 
-Wild oysters were sampled monthly from October 2023 to September 2024 from eight bays along the Texas coast (Figure 1). 
+Wild oysters were sampled monthly from October 2023 to September 2024 from eight bays along the Texas coast. Sample locations were in the Lower Laguna Madre, Upper Laguna Madre, Corpus Christi Bay, Copano Bay, Aransas Bay, San Antonio Bay, Matagorda Bay, and Galveston Bay (Figure 1). 
 
-```{r, echo=FALSE, out.width='100%', fig.cap="Fig 1", fig.pos = "H"}
-knitr::include_graphics("/home/shared/cvir/analysis/cvir_pmrs23/data/raw/pmar_progress_report_fig1.png")
+```{r, echo=FALSE, out.width='80%', fig.width=6, fig.height=4,fig.cap="Locations of monthly oyster sampling (left) and data to be collected (right). 1 = Lower Laguna Madre, 2 = Upper Laguna Madre, 3 = Corpus Christi Bay, 4 = Copano Bay, 5 = Aransas Bay, 6 = San Antonio Bay, 7 = Matagorda Bay, 8 = Galveston Bay. Morphometrics refers to total live weight, shell length, and meat weight.", fig.pos = "H"}
+knitr::include_graphics("/home/shared/cvir/analysis/cvir_pmrs23/data/raw/pmrs23_figure1.png")
 ```
 
-Sample locations were multiple sites in the Lower Laguna Madre, Upper Laguna Madre, Corpus Christi Bay, Copano Bay, Aransas Bay, San Antonio Bay, Matagorda Bay, Galveston Bay (Figure 1). Fifteen to twenty five oysters (2 inches or larger) were sampled from each site per month, summing to 145 to 225 oyster per bay per month. 
+For the Lower Laguna Madre and Galveston Bay, one site was sampled throughout the project. From all other water bodies, oysters were regularly sampled from the same two sites (See Table A1 in Appendix for information on all sites). Fifteen to twenty five oysters (two inches or larger) were sampled from each site per month. During each site visit, salinity and temperature were recorded using a portable YSI sonde. 
 
-Size and fecundity was measured for each adult oyster. Fecundity was
-estimated for each female oyster by dissecting the eggs, and counting subsamples in a known volume. Fecundity in females is reported per gram of oyster tissue.
+Sampled oysters were processed at the Texas A&M AgriLife Research Mariculture Center in Flour Bluff, Corpus Christi. For each oyster, fouling organisms were removed, then total live weight and shell length (maximum distance between the hinge and bill) were measured. The flat shell of oysters were then removed (shucked), and the oysters were drained of their liquor by placing oysters flat-side down on a mesh net.  After 10 minutes, both the flat shell and cupped shell containing the oyster meat were weighed to get the combined shell weight and meat weight of each oyster. 
 
-Each oyster was swabbed for measuring disease burden and for population genetic analysis. Swabs will be used for quantification of the number of cells of *Perksinsus marinus* using real time quantitative PCR assays. Genetic analysis will involve assignment of oysters to one of serveral genetic subpopulations present in the Gulf, estimates of genetic diversity, and estimates of genetic relatedness.  
- 
+The mantle and gill of each oyster were then swabbed to collect cells of the oyster as well as any cells of *Perksinsus marinus* that may be present. Oysters were then classified as male, female, or neither from a biopsy of the tissue. If sperm or no gametes were found, the gonad was sampled by making several incisions with a scalpel and rinsing the dissected material into a beaker. The sample of gonad was used to confirm sex and measure sperm activity. Sperm activity was measured with a 0-5 scale, 0 being no activity. If female, the gametes were collected by stripping them from the tissue via many incisions into the gonad with a scalpel. Fecundity was estimated for each female oyster by counting eggs in sub samples of a known volume. 
+
+After sampling or stripping the gonad, the remaining tissue of each oyster was removed from the shell and discarded. The flat and cupped shell were given 10 minutes to dry on a mesh net, then weighed. This shell weight was subtracted from the combined shell weight and meat weight to get a meat weight for each oyster. Fecundity of each female was calculated by dividing the total number of eggs by the meat weight of each oyster.
+
+
 # Results
 
-We have packaged data in the project into an interactive web application using the Shiny package in R. We are working on hosting this application on a website so anyone with the URL can explore the data. 
+We have organized the data into an interactive web application using the Shiny package in R. We are in the process of hosting this application online, allowing anyone with the URL to use the app.
 
-The data presented below is 
+Currently, we have data on morphometrics (total live weight, meat weight), sex ratio, fecundity of females, and sperm activity. We are in the process of collecting the genetic data and disease burden data (more in **Upcoming Developments**).
 
-## Major observations from the results :
- 
-1) Most sites had the lowest proportion of reproductively active oysters, defined as an oyster with any gametes, in Janurary or early Feburary.
+Below are highlights from the available data. The figures are screenshots from the interactive application. 
 
-  * For example, no reproductively active oysters were found in MGB in January, however about 50 percent were found in late February/early March (Fig. 2).
+1) Oysters from the southern region had females with eggs in December and January when no eggs were found in oysters from the most northern sites (Fig. 2).
+  
+  * The finding aligns with our experience that oysters in the Laguna Madre often have gametes in the winter, when oysters from more nothern sites tend to be reproductively dormant.   
 
-```{r, echo=FALSE, out.width='100%', fig.cap="Fig 2"}
-knitr::include_graphics("/home/shared/cvir/analysis/cvir_pmrs23/data/raw/test_screenshot.png")
+```{r, echo=FALSE, out.width='100%', fig.cap="Mean number of eggs per gram of oyster tissue for oysters collected in Galveston, Matagorda Bay, Upper Laguna Madre, and Lower Laguna Madre"}
+knitr::include_graphics("/home/shared/cvir/analysis/cvir_pmrs23/data/raw/Fig2.png")
 ```
 
-  * Exceptions include an Upper Laguna Madre site near the Flour Bluff hatchery, which never had less than 40% active oysters. Females and and males were found through the winter at this site.  
+2) Female oysters in Galveston Bay reached peak fecundity in April, while females in Matagorda Bay reached peak fecundity in June (Fig. 3).  Additionally, the two sample sites in Matagorda Bay reached peak fecundity at slightly different times (Fig. 4).
 
-2) Most sites had the highest proportion of reproductively active oysters in April/May.
+  * The different timing of peak gonad development both between bays and within a bay suggests local environmental conditions strongly influence reproductive timing. The observations highlight the value of holding broodstock in multiple locations to have access to ripe broodstock at various times of the year. 
+
+```{r, echo=FALSE, out.width='100%', fig.cap="Mean number of eggs per gram of oyster tissue for oysters collected in Matagorda Bay and Galveston"}
+knitr::include_graphics("/home/shared/cvir/analysis/cvir_pmrs23/data/raw/Fig3.png")
+```
+
+
+3) Female oysters from one of our Matagorda Bay sampling locations, Keller Bay, had drastic changes in mean fecundity between May and August (Fig. 4).
+
+  * The data suggests the oysters at Keller Bay developed mature gonads within a month, then spawned within a month, then produced mature gonads again within a month, signifying the oysters could quickly produce gametes in the conditions at Keller Bay. 
+
+```{r, echo=FALSE, out.width='100%', fig.cap="Mean number of eggs per gram of oyster tissue for oysters collected in Matagorda Bay"}
+knitr::include_graphics("/home/shared/cvir/analysis/cvir_pmrs23/data/raw/Fig4.png")
+```
+
+# Upcoming Developments
+
+## Morphometric and fecundity data
+ 
+ * We are currently processing oysters from our final month of Year 1. We plan on including it in the interactive app once it is available.
+ 
+## Genetic analyses
+
+  * We are in the process of genotyping all oysters collected in April (n = 188) for the first look at the genetics of oysters at all our sampling sites.  We expect to have that genetic analysis completed this fall. 
+
+## Disease burden
+
+  * We are currently developing a quantitative PCR assay for *P. marinus* at Texas A&M University - Corpus Christi that will allow us to measure the number of cells of the pathogen in a sample.
   
-  * The highest proportion of reproductively active oysters at MGB was in early May, which also was the case the Upper and Lower Laguna Madre.
+# Remaining priorities
+
+## Genetic analysis of oysters among bays
+
+ * An important outcome of this project is to produce data on the genetic profiles of oysters within each bay system. We have collected enough samples to develop a robust dataset on the genetics of oysters along the Texas coast. We plan on genotyping oysters from our April 2024 and September 2024 sampling as an initial analysis on the genetics of oysters we've collected.
+
+## Disease burden
+
+ * Another major point of this project is to evaluate differences in disease load, measured in concentration of *P. marinus* cells in our samples, among oysters collected along the Texas coast. We are developing the genetic tools in-house so we can measure the number of *P. marinus* cells from our samples.  We then plan on measuring the disease burden across all sites from samples collected during the late fall, the expected peak of disease pressure. 
+ 
+ 
+## Multivariate analyses
+
+  * A final objective of the project will be analyzing the relationship among the location of collection, reproductive status, genetic profile, and disease burden of our samples. Evaluating these relationships requires multivariate analyses. A current masters student at TAMUCC will be performing these analyses as the subject of their thesis. 
   
-3) Females in northern sites become more fecund than those from southern sites 
+# Appendix
 
-  * Females in from Matagorda Bay reached more than double the maximum fecundity of oysters in southern sites.
+```{r,include = FALSE}
+data <- readRDS(here::here("data","derived","clean_data.RDS")) %>%
+  group_by(water_body,site_name,latitude,longitude) %>%
+  summarize(total_sampled=n()) %>%
+  arrange(desc(latitude)) %>%
+  mutate(water_body = if_else(water_body == "West Bay","West Galveston Bay",water_body)) %>%
+  mutate(water_body = if_else(water_body == "Nueces Bay","Corpus Christi Bay", water_body)) %>%
+  mutate(water_body = if_else(water_body == "Upper Laguna Madre","Upper LM", water_body)) %>%
+  mutate(water_body = if_else(water_body == "Lower Laguna Madre", "Lower LM", water_body))
+```
 
+Table A1: Name of water body, name of site, code for site, latitude of site, longitude of site, and total number of oysters sampled per site throughout the survey. LM = Laguna Madre. 
 
-# Next Steps
+```{r,echo = FALSE}
+knitr::kable(data,caption = "")
+```
 
-
-1) Genetic analysis 
-
-  * We are in the process of genotyping all oysters collected in April (n = 188) for the first look at the genetics of oysters at all our sampling sites.  We expect to have that genetic analysis completed in October.
-  
-2) Disease burden
-
-  * We have started developing a qPCR assay for Perkinsus marinus at TAMUCC that will allow us to measure the number of P. marinus cells in all sampled oysters. 
-  
-3) Multivariate analysis
-
-  * The data from this project is the subject of a masters thesis that aims to analyze the relationship among disease burden, genetics, and reproductive status. 
-  

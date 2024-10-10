@@ -36,12 +36,11 @@ data <- data %>%
 data <- data %>%
   mutate(sex = if_else(sperm_rating == 0,NA,sex)) %>%
   mutate(sex = if_else(is.na(egg_count),sex,"F")) %>%
-  mutate(sex = if_else(egg_count < 10,NA,sex))
+  mutate(sex = case_when(
+    !is.na(egg_count) & egg_count < 10 ~ NA,
+    TRUE ~ sex
+))
 ```
-
-
-
-
 
 # Adjust "data" for graphing
 
@@ -315,6 +314,14 @@ sal <- data %>%
   ungroup()
 ```
 
+```{r}
+data %>%
+  filter(water_body_code == "MGB") %>%
+  filter(date < as.Date("2024-04-01")) %>%
+  filter(date > "2024-02-01") %>%
+  select(date,water_body,sample_site,sex,egg_count,sperm_rating) %>%
+  print(n=Inf)
+```
 
 
 # Save the following for shiny apps:
@@ -342,3 +349,8 @@ saveRDS(rep, here::here("shiny","data","rep.rds"))
 saveRDS(temp, here::here("shiny","data","temp.rds"))
 saveRDS(sal, here::here("shiny","data","sal.rds"))
 ```
+
+```{r}
+
+```
+
