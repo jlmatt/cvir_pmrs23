@@ -55,6 +55,22 @@ data <- data %>%
   select(date,zone,bay,sample_site,salinity,temp,do,ph,tray_num,animal_id,total_weight,shell_length,shell_width,shell_height,plate,well_id,box,tube_id,shell_weight_and_meat_weight,shell_weight,time_shucked,sex,egg_count,sperm_rating,notes)
 ```
 
+```{r}
+ggplot(data, aes(x = sample_site, y = egg_count/total_weight, color = sample_site)) + 
+  geom_boxplot()
+```
+
+```{r}
+data %>%
+  filter(bay %in% c("GAL", "MEG", "MGB", "SAN")) %>%
+  filter(!is.na(egg_count))
+
+
+data %>% filter(bay %in% "GAL|MEG|MGB|SAN") %>% filter(!is.na(egg_count))
+```
+
+
+
 # Save an RDS version
 
 ```{r}

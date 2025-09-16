@@ -1,0 +1,233 @@
+```{r}
+library(tidyverse)
+library(DBI)
+library(here)
+library(pantomime)
+library(adegenet)
+```
+
+```{r}
+con <- dbConnect(RSQLite::SQLite(), "/home/shared/cvir/analysis/cvir_data.db")
+```
+
+```{r}
+data <- tbl(con,"geno_table") %>%
+  collect()
+```
+
+```{r}
+data %>%
+  group_by(project_id) %>%
+  summarize(n=n())
+```
+
+```{r}
+data <- data %>%
+  filter(project_id == "pmrs23")
+```
+
+```{r}
+qplot(data$F_MISS)
+```
+
+```{r}
+data <- data %>%
+  mutate(quality = case_when(
+    F_MISS == 1 ~ "fail",
+    F_MISS < 1 & F_MISS > 0.90 ~ "very_low_quality",
+    F_MISS < 1 & F_MISS > 0.75 & F_MISS < 0.90 ~ "low_q",
+    F_MISS < 0.75 & F_MISS > 0.50 ~ "med_q",
+    F_MISS < 0.50 ~ "high_q"
+  ))
+```
+
+grab genotypes from cvir_run005
+
+```{r}
+genotypes1 <- read_csv(here("data","raw","cvir_run005_genotypes.csv")) %>%
+  mutate(pop = "cvir_run005") %>%
+  filter(id %in% data$geno_id)
+
+genotypes2 <- read_csv(here("data","raw","cvir_run005_genotypes.csv")) %>%
+  mutate(pop = "cvir_run005") %>%
+  filter(grepl("KEB",id))
+
+genotypes3 <- read_csv(here("data","raw","cvir_run005_genotypes.csv")) %>%
+  mutate(pop = "cvir_run005") %>%
+  filter(grepl("LLM",id))
+```
+
+```{r}
+genotypes <- rbind(genotypes1,genotypes2,genotypes3)
+```
+
+```{r}
+# Recode the haplotype alleles and convert to a genind object
+geno <- genotypes %>%
+  gather(locus, geno, -id, -pop) %>%
+  nest(id, pop, geno) %>%
+  mutate(lookup = map(data, .f = function(x) { 
+    #browser()
+    haps <- x %>%
+      filter(!is.na(geno)) %>%
+      pull(geno) %>%
+      str_split("/") %>%
+      simplify() %>%
+      unique()
+    
+    if (length(haps) > 0) {
+      tibble(hap = haps) %>%
+        mutate(code = str_pad(1:length(haps), width = 3, pad = "0"))
+    } else {
+      tibble(hap = NA_character_, code = NA_character_)
+    }
+    
+  })) %>%
+  mutate(new_dat = map2(data, lookup, .f = function(x, y) {
+    replace_vec <- setNames(y$code, y$hap)
+    x %>%
+      mutate(new_geno = str_replace_all(geno, replace_vec)) %>%
+      select(id, pop, geno = new_geno)
+  })) %>%
+  select(locus, data = new_dat) %>%
+  unnest() %>%
+  spread(locus, geno)
+# Create the genind object from the data frame
+pops <- geno$pop
+df <- geno %>%
+  select(-pop)
+gen <- df2genind(df[-1], sep = "/", ind.names = df$id, pop = pops)
+```
+
+Quick PCA
+
+```{r}
+pca_dat <- qpca(gen) %>%
+  rename(geno_id = ind) %>%
+  left_join(.,data,by="geno_id") %>%
+  mutate(quality = if_else(grepl("KEB",geno_id),"NORTH_OUTGROUP",quality)) %>%
+  mutate(quality = if_else(grepl("LLM",geno_id),"SOUTH_OUTGROUP",quality)) 
+  
+  ggplot(pca_dat,aes(Axis1, Axis2,color = quality)) +
+  geom_point()
+```
+
+Make a list of the ones in the middle that should be taken out because they are low quality
+
+```{r}
+redo <- pca_dat %>%
+  filter(quality == "low_q" | quality == "very_low_quality")
+```
+
+```{r}
+legend <- readRDS(here("shiny", "data", "data_for_scale_manual.rds")) %>%
+  mutate(site = str_sub(key,-3))
+```
+
+
+```{r}
+pca_dat <- qpca(gen) %>%
+  rename(geno_id = ind) %>%
+  left_join(.,data,by="geno_id") %>%
+  mutate(site = str_sub(sample_id,1,3)) %>%
+  left_join(legend,by="site") %>%
+  mutate(quality = if_else(grepl("KEB",geno_id),"NORTH_OUTGROUP",quality)) %>%
+  mutate(quality = if_else(grepl("LLM",geno_id),"SOUTH_OUTGROUP",quality)) %>%
+  filter(!quality == "low_q") %>%
+  filter(!quality == "very_low_quality") %>%
+  filter(!grepl("KEB",geno_id)) %>%
+  filter(!grepl("LLM",geno_id)) %>%
+  mutate(group = case_when(
+    #grepl("KEB",geno_id) ~ "NORTH_OUTGROUP",
+    #grepl("LLM",geno_id) ~ "SOUTH_OUTGROUP",
+    grepl("SAM",sample_id) ~ "GALVESTON",
+    grepl("KEB",sample_id) ~ "MATAGORDA_A",
+    grepl("BPP",sample_id) ~ "MATAGORDA_B",
+    grepl("SDJ",sample_id) ~ "SAN ANTONIO_A",
+    grepl("BSP",sample_id) ~ "SAN ANTONIO_B",
+    grepl("NLC",sample_id) ~ "COPANO_A",
+    grepl("SLC",sample_id) ~ "COPANO_B",
+    grepl("MSA",sample_id) ~ "ARANSAS_A",
+    grepl("RPA",sample_id) ~ "ARANSAS_B",
+    grepl("NCN",sample_id) ~ "CORPUS CHIRSTI_A",
+    grepl("UVB",sample_id) ~ "CORPUS CHRISTI_B",
+    grepl("SLM",sample_id) ~ "UPPER LAGUNA_A",
+    grepl("CNL",sample_id) ~ "UPPER LAGUNA_B",
+    grepl("URP",sample_id) ~ "LOWER LAGUNA_A",
+    grepl("ART",sample_id) ~ "LOWER LAGUNA_B"
+  )) %>%
+  mutate(site = as.factor(site)) %>%
+  mutate(key = as.factor(key)) %>%
+  mutate(bay = as.factor(bay)) %>%
+  mutate(bay = factor(bay,levels=c("GAL","MGB","SAB","COP","ARA","CCB","ULM","LLM")))
+
+pca_dat$bay
+
+plot1<-ggplot(pca_dat,aes(Axis1, Axis2,color=bay)) +
+  geom_point() 
+plot1
+
+plot1 <- ggplot(pca_dat, aes(Axis1, Axis2, fill = bay)) +
+  geom_point(shape = 21, color = "black",stroke = 0.5, size = 3) + 
+  scale_fill_manual(name = "Bay",
+                     values = setNames(pca_dat$color, pca_dat$bay))
+plot1
+
+str(pca_dat$key)
+```
+
+```{r,eval=FALSE}
+ggsave(here("out","fig","pca_population_assignments_cvir_run005.png"),plot1,width = 8, height = 6, units = "in")
+```
+
+```{r}
+pca_dat2 <- pca_dat %>%
+  filter(Axis1 > -5)
+
+plot1 <- ggplot(pca_dat2, aes(Axis1, Axis2, fill = bay)) +
+  geom_point(shape = 21, color = "black",stroke = 0.5, size = 3) + 
+  scale_fill_manual(name = "Bay",
+                     values = setNames(pca_dat$color, pca_dat$bay))
+plot1
+
+```
+
+
+
+```{r}
+assignments <- pca_dat %>%
+  filter(group == "SAMPLE") %>%
+  mutate(call = case_when(
+    Axis1 > 0 & Axis1 < 5 ~ "HYB",
+    Axis1 < 0 ~ "NORTH",
+    Axis1 > 5 ~ "SOUTH"
+  )) %>%
+    select(geno_id,sample_id,F_MISS,call)
+```
+
+```{r}
+failed_samples <- qpca(gen) %>%
+  rename(geno_id = ind) %>%
+  left_join(.,data,by="geno_id") %>%
+  filter(quality == "low_q") %>%
+  mutate(group = "SAMPLE") %>%
+  mutate(call = "FAILED") %>%
+  select(geno_id,sample_id,F_MISS,call)
+```
+
+```{r}
+failed_samples2<-data %>%
+  filter(F_MISS == 1) %>%
+  mutate(call = "FAILED") %>%
+  select(geno_id,sample_id,F_MISS,call)
+```
+
+```{r}
+calls <- rbind(assignments,failed_samples,failed_samples2)
+```
+
+```{r}
+write_csv(calls,here("data","derived","population_assignments_cvir_run005.csv"))
+```
+
+

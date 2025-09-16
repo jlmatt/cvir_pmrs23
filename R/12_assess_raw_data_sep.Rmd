@@ -1,5 +1,5 @@
 ---
-title: "pmrs_data_assessment_june"
+title: "pmrs_data_assessment_sep"
 subtitle:
 author: |
    Texas A&M University-Corpus Christi
@@ -17,10 +17,20 @@ library(here)
 library(janitor)
 library(readxl)
 library(skimr)
+library(googledrive)
+```
+
+
+```{r, eval = FALSE}
+drive_download("pmar1_survey_data_september_2024",
+  path = here::here("data","raw","pmar1_survey_data_september_2024.xlsx"),
+  type = "xlsx",
+  overwrite = TRUE
+)
 ```
 
 ```{r}
-data <- read_xlsx(here::here("data", "raw", "pmar1_survey_data_june_2024.xlsx")) %>%
+data <- read_xlsx(here::here("data", "raw", "pmar1_survey_data_september_2024.xlsx")) %>%
   janitor::clean_names()  %>%
   mutate(across(everything(), as.character)) %>%
   mutate(salinity = as.numeric(salinity)) %>%
@@ -60,17 +70,22 @@ ggplot(data, aes(x = sample_site, y = egg_count/total_weight, color = sample_sit
   geom_boxplot()
 ```
 
+
 ```{r}
-data %>% filter(sample_site == "BPP") %>% filter(!is.na(egg_count))
-# 8 samples there
-
-
+data %>%
+  filter(bay %in% c("LLM","COP","GAL")) %>%
+  filter(!is.na(egg_count))
 ```
+
 
 
 # Save an RDS version
 
 ```{r}
-saveRDS(data,here::here("data","derived","june_data.rds"))
+saveRDS(data,here::here("data","derived","sep_data.rds"))
+```
+
+```{r}
+
 ```
 

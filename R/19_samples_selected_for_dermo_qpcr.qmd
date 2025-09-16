@@ -1,0 +1,81 @@
+```{r}
+library(tidyverse)
+library(here)
+```
+
+
+```{r}
+data <- readRDS(here::here("data","derived","sep_data.rds"))
+```
+
+```{r}
+cands <- data %>%
+  filter(bay %in% c("LLM","COP","GAL","MEG")) %>%
+  filter(!is.na(egg_count))
+```
+
+```{r}
+ggplot(cands, aes(x = bay, y = egg_count)) +
+  geom_boxplot()
+```
+
+Ok, let's take 8 from GAL, 8 from MEG, and 10 from LLM
+
+From GAL, 4 with highest egg count 4 with lowest, etc. for the rest. 
+
+```{r}
+top_north <- cands %>%
+  filter(bay != "COP") %>%
+  filter(bay != "LLM") %>%
+  mutate(
+    tissue_weight = shell_weight_and_meat_weight - shell_weight,
+    egg_per_tissue = egg_count / tissue_weight
+  ) %>%
+  group_by(bay) %>%
+  slice_max(order_by = egg_per_tissue, n = 4)
+```
+
+```{r}
+top_south <- cands %>%
+  filter(bay == "LLM") %>%
+  mutate(
+    tissue_weight = shell_weight_and_meat_weight - shell_weight,
+    egg_per_tissue = egg_count / tissue_weight
+  ) %>%
+  group_by(bay) %>%
+  slice_max(order_by = egg_per_tissue, n = 5)
+```
+
+
+```{r}
+bottom_north <- cands %>%
+  filter(bay != "COP") %>%
+  filter(bay != "LLM") %>%
+  mutate(
+    tissue_weight = shell_weight_and_meat_weight - shell_weight,
+    egg_per_tissue = egg_count / tissue_weight
+  ) %>%
+  group_by(bay) %>%
+  slice_min(order_by = egg_per_tissue, n = 4)
+```
+
+```{r}
+bottom_south <- cands %>%
+  filter(bay == "LLM") %>%
+  mutate(
+    tissue_weight = shell_weight_and_meat_weight - shell_weight,
+    egg_per_tissue = egg_count / tissue_weight
+  ) %>%
+  group_by(bay) %>%
+  slice_min(order_by = egg_per_tissue, n = 5)
+```
+
+
+```{r}
+data_set <- bind_rows(top_north,top_south,bottom_north,bottom_south)
+```
+
+```{r}
+
+```
+
