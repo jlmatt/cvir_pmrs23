@@ -32,7 +32,7 @@ top_north <- cands %>%
     egg_per_tissue = egg_count / tissue_weight
   ) %>%
   group_by(bay) %>%
-  slice_max(order_by = egg_per_tissue, n = 4)
+  slice_max(order_by = egg_per_tissue, n = 5)
 ```
 
 ```{r}
@@ -72,7 +72,8 @@ bottom_south <- cands %>%
 
 
 ```{r}
-data_set <- bind_rows(top_north,top_south,bottom_north,bottom_south)
+data_set <- bind_rows(top_north,top_south,bottom_north,bottom_south) %>% 
+  distinct()
 ```
 
 ```{r}

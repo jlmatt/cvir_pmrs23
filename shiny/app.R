@@ -25,12 +25,12 @@ ui <- fluidPage(
     sidebarPanel(
       # Dropdown to select data type
       selectInput("data_type", "Select Data Type:",
-                  choices = c("Female Fecundity", 
+                  choices = c("Fecundity of Females", 
                               "Sperm Rating", 
                               "Reproductively Active",
                               "Temperature",
                               "Salinity"), # Replace with your actual data types
-                  selected = "Female Fecundity"),  # Default selection
+                  selected = "Fecundity of Females"),  # Default selection
       
       # Checkbox group for selecting bays
       checkboxGroupInput("selected_bays", "Select Bays:", 
@@ -55,7 +55,7 @@ server <- function(input, output, session) {
   filteredData <- reactive({
     req(input$selected_bays)
     
-    if (input$data_type == "Female Fecundity") {
+    if (input$data_type == "Fecundity of Females") {
       fec %>% filter(bay_full_name %in% input$selected_bays)
     } else if (input$data_type == "Sperm Rating") {
       rat %>% filter(bay_full_name %in% input$selected_bays)
@@ -98,7 +98,7 @@ server <- function(input, output, session) {
     # Convert key to a factor with levels in the desired order
     data_to_plot$key <- factor(data_to_plot$key, levels = filtered_legend$key)
     
-    if (input$data_type == "Female Fecundity") {
+    if (input$data_type == "Fecundity of Females") {
       ggplot(data_to_plot, aes(x = date , y = md, 
                       fill= key,
                       shape = key,
@@ -116,11 +116,11 @@ server <- function(input, output, session) {
                            breaks = seq(0, 1000000, by = 100000),     
                            labels = scales::label_number(scale = 1e-3, suffix = "K"))+ 
         scale_x_date(
-          limits = as.Date(c("2023-11-01", "2024-08-31")),
+          limits = as.Date(c("2023-11-01", "2024-10-31")),
           date_breaks = "1 month",              
           date_labels = "%b"                        
         ) + 
-        ylab("Eggs Per Grams of Tissue") +
+        ylab("Mean Eggs Per Gram of Tissue") +
         xlab("Date") +
         theme_minimal()
       

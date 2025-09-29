@@ -1,0 +1,118 @@
+```{r}
+library(here)
+library(tidyverse)
+library(dbfunctions)
+library(adegenet)
+```
+
+```{r}
+connectdb()
+```
+
+```{r}
+geno_table <- tbl(con, "geno_table") %>%
+  collect()
+
+geno_table %>%
+  group_by(project_id) %>%
+  count() %>%
+  print(n=Inf)
+```
+
+```{r}
+pmrs_potential_samples <- geno_table %>%
+  filter(project_id %in% c("pmrs23","sgtz23","sgtz23_pmrs23")) %>%
+  filter(!project_id %in% ("sgtz23"))
+```
+
+```{r}
+qplot(pmrs_potential_samples$F_MISS)
+```
+
+Ok, let'st just take the ones with greater than 0.6 
+
+```{r}
+data <- pmrs_potential_samples %>%
+  filter(F_MISS < 0.7)
+```
+
+There's an issue in how some of them are named
+
+```{r}
+samples <- tibble(
+  sample_id = c(
+    "CV-KEB-4", "CV-KEB-13", "CV-KEB-18", "CV-KEB-20", "CV-KEB-21",
+    "CV-ART-17", "CV-ART-19", "CV-ART-22", "CV-ART-24", "CV-ART-25",
+    "CV-ART-26", "CV-ART-27", "CV-ART-28", "CV-ART-29", "CV-ART-30"
+  ),
+  correct_sample_id = c(
+    "KEB_4_OCT", "KEB_13_OCT", "KEB_3_NOV", "KEB_5_NOV", "KEB_6_NOV",
+    "ART_2_FEB", "ART_4_FEB", "ART_7_FEB", "ART_9_FEB", "ART_10_FEB",
+    "ART_11_FEB", "ART_12_FEB", "ART_13_FEB", "ART_14_FEB", "ART_15_FEB"
+  )
+)
+```
+
+```{r}
+data <- data %>%
+  left_join(samples, by = "sample_id")
+
+data <- data %>%
+  mutate(sample_id = if_else(is.na(correct_sample_id), sample_id, correct_sample_id)) %>%
+  select(-correct_sample_id)
+```
+
+Ok, great. Let's make us a PCA
+
+```{r}
+genos <- fetch_genotypes(data)
+gen <- recode_and_genind(genos)
+```
+
+```{r}
+x <- scaleGen(gen, NA.method = "mean")
+pca <- dudi.pca(x,cent=FALSE,scale=FALSE,scannf=FALSE,nf=4)
+```
+
+```{r}
+eig <- dbfunctions::eigenvalues(pca)
+
+pc_inds <- dbfunctions::PC.ind(pca) %>%
+  rename(geno_id = LIB_ID) %>%
+  left_join(data, by = "geno_id") %>%
+  mutate(site = case_when(
+    grepl("KEB", sample_id) ~ "KEB",
+    grepl("ART", sample_id) ~ "ART",
+    grepl("BPP", sample_id) ~ "BPP",
+    grepl("BSP", sample_id) ~ "BSP",
+    grepl("CNL", sample_id) ~ "CNL",
+    grepl("MSA", sample_id) ~ "MSA",
+    grepl("NCN", sample_id) ~ "NCN",
+    grepl("NLC", sample_id) ~ "NLC",
+    grepl("RPA", sample_id) ~ "RPA",
+    grepl("SAM", sample_id) ~ "SAM",
+    grepl("SDJ", sample_id) ~ "SDJ",
+    grepl("SLC", sample_id) ~ "SLC",
+    grepl("SLM", sample_id) ~ "SLM",
+    grepl("URP", sample_id) ~ "URP",
+    TRUE ~ NA
+  )) %>%
+    mutate(month = str_sub(sample_id, -3, -1)) %>%
+  filter(!run_id == "cvir_run006")
+```
+
+```{r}
+# Plot
+plot1 <- ggplot(pc_inds, aes(x = Axis1, y = Axis2, color = site)) +
+  geom_point(alpha = 0.75, size = 4) +
+  labs(
+    x = paste("PC1:", round(eig[1, 3], digits = 3), "%"), 
+    y = paste("PC2:", round(eig[2, 3], digits = 3), "%")
+  ) +
+  ggtitle("") +
+  theme(plot.title = element_text(hjust = 0.5)) 
+
+plot1
+```
+
+Cool! Now how to incorporate this data into the shiny?
