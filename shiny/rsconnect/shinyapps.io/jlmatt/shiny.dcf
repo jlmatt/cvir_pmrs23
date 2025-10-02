@@ -1,0 +1,10 @@
+name: shiny
+title:
+username: jlmatt
+account: jlmatt
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 15598731
+bundleId: 10969183
+url: https://jlmatt.shinyapps.io/shiny/
+version: 1

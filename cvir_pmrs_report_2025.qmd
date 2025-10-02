@@ -1,0 +1,70 @@
+---
+execute:
+  echo: false
+  
+format:
+  pdf:
+    documentclass: scrartcl
+    pdf-engine: xelatex
+    toc: false
+    papersize: letter
+    output-file: "cvir_pmrs23_progress_report_2025.pdf"
+---
+
+```{r, include = FALSE}
+library(tidyverse)
+library(dbfunctions)
+library(knitr)
+library(gt)
+library(scales)
+options(scipen = 50)
+```
+
+```{=latex}
+\vspace*{-4em}  % Move the entire logo/title block upward
+
+\noindent
+\includegraphics[width=0.45\linewidth]{images/tagrilife_logo_v2.png}%
+\hfill
+\raisebox{5.5ex}{\includegraphics[width=0.45\linewidth]{images/tamucc_logo.png}}
+
+\vspace{-0.5em}
+
+\begin{center}
+
+\vspace{0.5em}
+
+\huge Wild Broodstock Survey Status Update
+
+\vspace{1em}
+
+\large Chris Hollenbeck \\
+\vspace{0.25em}
+Joey Matt
+
+\vspace{0.5em}
+
+\small \today
+\end{center}
+
+\vspace{-2em}
+```
+## Objective
+
+Both reef restoration and aquaculture of oysters benefit from an understanding of the local wild population. For restoration purposes, an understanding of genetic population structure, levels of genetic diversity, disease loads, and timing of reproduction are helpful for matching wild and augmented oysters and to maximize the effectiveness of habitat restoration. For commercial aquaculture, this same information helps to minimize aquaculture-wild interactions and inform broodstock sourcing, farm stocking decisions, and farm-siting policies.
+
+## Updates
+
+### Interactive Data Application is Live
+
+The application we developed to share the data from the project is now available online here: https://jlmatt.shinyapps.io/shiny/ The current dataset includes 2,206 oysters measured for fecundity and 143 measures of temperature and salinity.
+
+### Oysters Genotyped and More on the Way
+
+New on the application is a dataset of genotyped oysters. We've added 158 oysters across 14 sites as an initial overview. The genotype data are viewable as a Principal Component Analysis plot. Each point on the plot is a different oyster. The closer the two oysters are on the plot, the more genetically related they are.
+
+We have more samples in the process of genotyping and will add them to the application once completed.
+
+### Disease Testing Assay Up and Running
+
+The in-house genetic tool to measure disease burden of Dermo (*Perkinsus marinus*) has been developed and has been used on a test set of samples. Next, we will run samples from all sites collected in the late summer of 2024 to evaluate the difference in disease burden among sites during a time of expected high disease pressure. These data will also be added to the application once available.

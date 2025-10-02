@@ -1,0 +1,189 @@
+```{r}
+library(tidyverse)
+```
+
+So, we had a serial dilution of this
+
+```{r}
+serial_dilution_ng_ul<-c(0.2,0.02,0.002,0.0002, 0.00002, 0.000002, 0.0000002, 0.00000002, 0.000000002,2E-10,2E-11,2E-12,2E-13,2E-14)
+
+labels <- paste0("gblock", 1:14)
+
+conc <- tibble(
+  ng_ul = serial_dilution_ng_ul,
+  labels = labels
+)
+```
+
+```{r}
+library(tibble)
+
+# your numbers
+vals <- c(
+  14.61407, 17.42701, 22.44843, 26.69646, 30.29839, 35.49605, 39.01688, 41.32988, 40.89827, NA, NA,
+  15.06366, 17.81936, 22.63247, 27.21279, 32.05811, 33.0163, 37.83019, 42.08134, 40.68962, NA, NA,
+  14.83701, 17.60255, 22.72786, 27.86626, 31.53006, 35.16218, 37.64196, 43.02563, 40.73992, 
+  38.12904, 41.17984
+)
+
+# define the dilution labels
+labels <- paste0("gblock", c(3:4, 6:14))
+
+# recycle the labels across all values
+dilution <- rep(labels, length.out = length(vals))
+
+# build tibble
+curve <- tibble(
+  dilution = dilution,
+  value = vals
+)
+
+curve
+
+```
+
+
+Ok, our data 
+
+```{r}
+#CV-KEB-058
+NA
+
+
+#CV-KEB-084
+
+27.36494
+27.68933
+27.70886
+
+
+# CV-NTX-032
+
+33.46423
+33.66708
+33.65552
+
+```
+
+```{r}
+raw <- c(
+  "#CV-KEB-058", NA,
+  "#CV-KEB-084",
+  27.36494, 27.68933, 27.70886,
+  "# CV-NTX-032",
+  33.46423, 33.66708, 33.65552
+)
+
+# turn into tibble
+dat <- tibble(raw = raw) %>%
+  mutate(
+    # mark rows that are names
+    name = ifelse(str_detect(raw, "^#"),
+                  str_trim(str_remove(raw, "^#")), NA_character_),
+    # carry the last name downward
+    name = zoo::na.locf(name, na.rm = FALSE),
+    # convert values to numeric if possible
+    dilution = suppressWarnings(as.numeric(raw))
+  ) %>%
+  # keep everything: both numeric and NA
+  select(name, dilution) %>%
+  filter(!(is.na(dilution) & name == "CV-NTX-032"))
+
+dat
+```
+
+
+Ok, nice!
+
+Now put them together
+
+```{r}
+curve <- curve %>%
+  rename(ct = value)
+
+dat <- dat %>%
+  rename(ct = dilution)
+
+conc <- conc %>%
+  rename(dilution = labels)
+
+
+
+%>%
+  group_by(dilution) %>%
+  summarize(
+    mean_ct = mean(ct)
+  ) %>%
+  left_join(conc, by = "dilution")
+```
+
+```{r}
+values <- values %>%
+  mutate(
+    dilution = factor(
+      dilution,
+      levels = c("gblock3","gblock4","gblock5","gblock6","gblock7","gblock8",
+                 "gblock9","gblock10","gblock11","gblock12","gblock13","gblock14"),
+      ordered = TRUE
+    )
+  )
+
+
+ggplot(values, aes(y = mean_ct, x = dilution)) + 
+  geom_point()
+```
+
+Fit the standard curve
+
+```{r}
+values <- curve %>%
+  left_join(conc, by = "dilution") %>%
+  filter(!dilution == "gblock13") %>%
+  filter(!dilution == "gblock14")
+```
+
+```{r}
+fit <- lm(ct ~ log10(ng_ul), data = values)
+co <- coef(fit)
+a <- unname(co[["(Intercept)"]])
+b <- unname(co[["log10(ng_ul)"]])
+```
+
+```{r}
+values2 <- values %>%
+  filter(is.finite(ct), is.finite(ng_ul), ng_ul > 0) %>%
+  mutate(log10_ng = log10(ng_ul))
+
+ggplot(values2, aes(x = log10_ng, y = ct)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +     # linear fit
+  geom_smooth(method = "loess", se = FALSE, linetype = 2) +  # flexible curve
+  labs(x = "log10(ng/µL)", y = "Ct")
+```
+
+```{r}
+# --- 3) Define inverse to get ng/µL from Ct ----------------------------------
+ct_to_ngul <- function(ct, a, b) 10^((ct - a)/b)
+
+# --- 4) Apply to your field samples ------------------------------------------
+# field tibble with columns: sample_id, ct
+
+
+field_quant <- dat %>%
+  mutate(
+    ng_ul = dplyr::case_when(
+      !is.finite(ct) ~ NA_real_,                          # keep NA for undetermined
+      TRUE ~ ct_to_ngul(ct, a, b)
+    )
+  )
+
+field_quant
+```
+
+
+```{r}
+slope <- b                                 # expect about -3.1 to -3.6 for good assays
+efficiency <- 10^(-1/slope) - 1            # ~90–110% is typical
+glance(fit)[, c("r.squared", "sigma")]
+```
+

@@ -1,20 +1,36 @@
 library(shiny)
 library(bslib)
 library(ggplot2)
-library(tidyverse)
-library(here)
+library(dplyr)
+library(readr)
+library(stringr)
+library(tibble)
 library(leaflet)
 library(plotly)
 library(shinyscreenshot)
 
 # Load data
-data <- readRDS(here("shiny", "data", "data_for_shiny.rds"))
-fec <- readRDS(here("shiny", "data", "weight_adjusted_fecundity.rds"))
-rat <- readRDS(here("shiny", "data", "rat.rds"))
-rep <- readRDS(here("shiny", "data", "rep.rds"))
-temp <-readRDS(here("shiny", "data", "temp.rds"))
-sal <-readRDS(here("shiny", "data", "sal.rds"))
-legend <- readRDS(here("shiny", "data", "data_for_scale_manual.rds"))
+#data <- readRDS(here("shiny", "data", "data_for_shiny.rds"))
+#fec <- readRDS(here("shiny", "data", "weight_adjusted_fecundity.rds"))
+#rat <- readRDS(here("shiny", "data", "rat.rds"))
+#rep <- readRDS(here("shiny", "data", "rep.rds"))
+#temp <-readRDS(here("shiny", "data", "temp.rds"))
+#sal <-readRDS(here("shiny", "data", "sal.rds"))
+#legend <- readRDS(here("shiny", "data", "data_for_scale_manual.rds"))
+#gen <- read_rds(here::here("shiny","data","pca_data.rds"))
+#eig <- read_rds(here::here("shiny","data","eig_for_pca.rds"))
+
+data   <- readRDS("data/data_for_shiny.rds")
+fec    <- readRDS("data/weight_adjusted_fecundity.rds")
+rat    <- readRDS("data/rat.rds")
+rep    <- readRDS("data/rep.rds")
+temp   <- readRDS("data/temp.rds")
+sal    <- readRDS("data/sal.rds")
+legend_df <- readRDS("data/data_for_scale_manual.rds")
+gen    <- read_rds("data/pca_data.rds")
+eig    <- read_rds("data/eig_for_pca.rds")
+
+
 
 
 
@@ -29,7 +45,8 @@ ui <- fluidPage(
                               "Sperm Rating", 
                               "Reproductively Active",
                               "Temperature",
-                              "Salinity"), # Replace with your actual data types
+                              "Salinity",
+                              "Genetics"), # Replace with your actual data types
                   selected = "Fecundity of Females"),  # Default selection
       
       # Checkbox group for selecting bays
@@ -65,6 +82,8 @@ server <- function(input, output, session) {
       temp %>% filter(bay_full_name %in% input$selected_bays)
     } else if (input$data_type == "Salinity") {
       sal %>% filter(bay_full_name %in% input$selected_bays)
+    } else if (input$data_type == "Genetics") {
+        gen %>% filter(bay_full_name %in% input$selected_bays)
     }
   })
   
@@ -93,7 +112,7 @@ server <- function(input, output, session) {
     
     # Create a unique list of keys and their corresponding colors and shapes based on the data
     unique_keys <- unique(data_to_plot$key)
-    filtered_legend <- legend %>% filter(key %in% unique_keys)
+    filtered_legend <- legend_df %>% dplyr::filter(key %in% unique_keys)
     
     # Convert key to a factor with levels in the desired order
     data_to_plot$key <- factor(data_to_plot$key, levels = filtered_legend$key)
@@ -224,6 +243,25 @@ server <- function(input, output, session) {
         xlab("Date") +
         theme_minimal()
     
+    } else if (input$data_type == "Genetics") {
+      ggplot(data_to_plot, aes(x = Axis1 , y = Axis2, 
+                               fill= key,
+                               shape = key,
+                               color = key)) +
+        geom_point(alpha = 0.75, size = 5, color = "black") +
+        scale_color_manual(values = filtered_legend$color, guide = "none") +
+        scale_fill_manual(name = "Sites",
+                          labels = filtered_legend$key,
+                          values = filtered_legend$color) + 
+        scale_shape_manual(name = "Sites",
+                           labels = filtered_legend$key,
+                           values = filtered_legend$shape) +
+        labs(
+          x = paste("PC1:", round(eig[1, 3], digits = 3), "%"), 
+          y = paste("PC2:", round(eig[2, 3], digits = 3), "%")
+        ) +
+        theme_minimal()  
+      
     }
     
   })

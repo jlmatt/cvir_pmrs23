@@ -1,0 +1,99 @@
+
+
+
+```{r}
+install.packages("rsconnect")
+```
+
+
+```{r}
+rsconnect::setAccountInfo(name='jlmatt', token='CF0F0546C228B16332012F12284CE016', secret='8kP1MxDsTsm9rbkreoylzpXn+RXz1y1QnbDaIVuK')
+```
+
+```{r}
+Sys.setenv(RENV_CONFIG_ENABLED = "FALSE")
+rsconnect::deployApp("shiny")
+```
+
+Didn't work, try this
+
+```{r}
+
+install.packages(c("fastmap","htmltools"))
+install.packages("sass")
+install.packages(c("bslib","cachem","cpp11","tzdb","shiny"))
+```
+
+Now it's working I think 
+
+but the graphs didn't load
+
+```{r}
+rsconnect::showLogs(appName = "shiny", account = "jlmatt", streaming = TRUE)
+```
+
+
+
+Everything below was trying to use shiny live, which was a mess.
+
+
+
+
+
+
+
+```{r}
+library(here)
+```
+
+
+```{r, eval = FALSE}
+install.packages(c("shinylive","httr2","curl","openssl","jsonlite"))
+```
+
+```{r, eval = FALSE}
+packageVersion("shinylive")
+packageVersion("httr2")
+```
+
+```{r, eval = FALSE}
+install.packages(c("httr2", "curl", "openssl"))  # from CRAN
+```
+
+```{r}
+appdir <- here::here("shiny")
+destdir <- here::here("docs") 
+```
+
+```{r}
+shinylive::export(appdir = appdir, destdir = destdir)
+```
+
+hit an error, so going to do this
+
+```{r}
+remove.packages("dplyr")
+install.packages("dplyr") 
+```
+
+hit another error, "Error in desc$Repository : $ operator is invalid for atomic vectors"
+
+try this and some minor adjustments to the top of the app.R file (change which packages are loaded and change how the data is loaded in)
+```{r, eval =FALSE}
+install.packages(c(
+  "shiny","bslib","ggplot2",
+  "dplyr","tidyr","readr","purrr","stringr","tibble",  # core tidyverse pieces
+  "here","leaflet","plotly","shinyscreenshot"
+))
+```
+
+Ok, had issues with the page loading, so added a .nojeylkk file, now doing this:
+
+```{r}
+install.packages("pak")
+pak::pak(c(
+  "ggplot2","scales","withr","rlang","vctrs","gtable","isoband",
+  "MASS","mgcv","tibble","cli","glue","digest","farver","labeling","lifecycle"
+))
+```
+

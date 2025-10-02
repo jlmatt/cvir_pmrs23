@@ -97,8 +97,15 @@ pc_inds <- dbfunctions::PC.ind(pca) %>%
     grepl("URP", sample_id) ~ "URP",
     TRUE ~ NA
   )) %>%
-    mutate(month = str_sub(sample_id, -3, -1)) %>%
-  filter(!run_id == "cvir_run006")
+    mutate(month = str_sub(sample_id, -3, -1))
+```
+
+IMPORTANT -- there were a set of sampels that were incorrectly named and need to be removed from the dataset.
+
+```{r}
+pc_inds <- pc_inds %>%
+  filter(!between(as.integer(str_extract(ind_id, "\\d+$")), 
+                  882, 896))
 ```
 
 ```{r}
@@ -116,3 +123,47 @@ plot1
 ```
 
 Cool! Now how to incorporate this data into the shiny?
+
+```{r}
+pc_inds %>% group_by(site) %>%
+  count()
+```
+
+
+Bring in an example of the format of data in shiny app
+
+```{r}
+look <- readRDS(here("shiny", "data", "data_for_shiny.rds"))
+fec <- readRDS(here("shiny", "data", "weight_adjusted_fecundity.rds"))
+```
+
+Ok, I wonder if you can do this with the data formatted much like fec, with the date taken out. 
+
+```{r}
+format <- fec %>%
+  select(-date, -md,-n_fem) %>%
+  distinct()
+```
+
+```{r}
+form <- pc_inds %>%
+  select(Axis1,Axis2,site) %>%
+  rename(sample_site = site) %>%
+  left_join(format, by = "sample_site")
+```
+
+Ok, maybe this will work.  Let's try it 
+
+```{r}
+write_rds(form, here::here("shiny","data","pca_data.rds"))
+write_rds(eig, here::here("shiny","data","eig_for_pca.rds"))
+```
+
+```{r}
+data <- read_rds(here::here("shiny","data","pca_data.rds"))
+```
+
+```{r}
+
+```
+
