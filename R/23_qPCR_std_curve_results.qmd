@@ -1,0 +1,238 @@
+---
+title: "23_qPCR_std_curve_results"
+format: html
+---
+
+Want to assess the standard curve results from the three qPCR runs.
+
+```{r}
+library(here)
+library(tidyverse)
+library(googledrive)
+```
+
+
+```{r, eval = FALSE}
+drive_download("cvir_qpcr24_dermo_runs_std_curve",
+  path = here::here("data","raw","cvir_qpcr24_dermo_runs_std_curve.xlsx"),
+  type = "xlsx",
+  overwrite = TRUE
+)
+
+drive_download("cvir_qpcr24_dermo_runs_std_curve_exp",
+  path = here::here("data","raw","cvir_qpcr24_dermo_runs_std_curve_exp.xlsx"),
+  type = "xlsx",
+  overwrite = TRUE
+)
+```
+
+```{r}
+data <- readxl::read_xlsx(here::here("data","raw","cvir_qpcr24_dermo_runs_std_curve.xlsx"))
+
+exp <- readxl::read_xlsx(here::here("data","raw","cvir_qpcr24_dermo_runs_std_curve_exp.xlsx"))
+```
+
+```{r}
+data <- data %>%
+  left_join(exp, by = "dilution")
+```
+
+```{r}
+str(data)
+```
+
+
+# Run 1
+
+```{r}
+mod <- lm(average_ct ~ log_10_conc, data = data %>% filter(date == "05.15.26"))
+```
+
+Slope
+```{r}
+coef(mod)
+```
+
+Calculate efficiency
+```{r}
+slope1 <- coef(mod)[["log_10_conc"]]
+
+efficiency1 <- (10^(-1 / slope1) - 1) * 100
+```
+
+Calculate R square
+```{r}
+rsquare1 <- summary(mod)$r.squared
+```
+
+Ok, so this run is money!
+
+# Run 2
+
+```{r}
+mod <- lm(average_ct ~ log_10_conc, data = data %>% filter(date == "07.27.26"))
+```
+
+Slope
+```{r}
+coef(mod)
+```
+
+Calculate efficiency
+```{r}
+slope2 <- coef(mod)[["log_10_conc"]]
+
+efficiency2 <- (10^(-1 / slope2) - 1) * 100
+
+efficiency2
+```
+
+Calculate R square
+```{r}
+rsquare2 <- summary(mod)$r.squared
+```
+
+This run is bad!
+
+# Run 3
+
+```{r}
+mod <- lm(average_ct ~ log_10_conc, data = data %>% filter(date == "09.15.26"))
+```
+
+Slope
+```{r}
+coef(mod)
+```
+
+Calculate efficiency
+```{r}
+slope3 <- coef(mod)[["log_10_conc"]]
+
+efficiency3 <- (10^(-1 / slope3) - 1) * 100
+
+efficiency3
+```
+
+Calculate R square
+```{r}
+rsquare3 <- summary(mod)$r.squared
+```
+
+# Run 4
+
+```{r}
+mod <- lm(average_ct ~ log_10_conc, data = data %>% filter(date == "09.23.26"))
+```
+
+Slope
+```{r}
+coef(mod)
+```
+
+Calculate efficiency
+```{r}
+slope4 <- coef(mod)[["log_10_conc"]]
+
+efficiency4 <- (10^(-1 / slope4) - 1) * 100
+
+efficiency4
+```
+
+Calculate R square
+```{r}
+rsquare4 <- summary(mod)$r.squared
+```
+
+
+# Take out last dilution
+
+
+Let's do this but remove dilution 13 (lower detection)
+
+```{r}
+data <- data %>%
+  filter(!dilution == "gb_13_te")
+```
+
+# Run 1
+
+```{r}
+mod <- lm(average_ct ~ log_10_conc, data = data %>% filter(date == "05.15.26"))
+```
+
+Slope
+```{r}
+coef(mod)
+```
+
+Calculate efficiency
+```{r}
+slope1_ld <- coef(mod)[["log_10_conc"]]
+
+efficiency1_ld <- (10^(-1 / slope1_ld) - 1) * 100
+```
+
+Calculate R square
+```{r}
+rsquare1_ld <- summary(mod)$r.squared
+```
+
+Ok, so this run is money!
+
+# Run 3
+
+```{r}
+mod <- lm(average_ct ~ log_10_conc, data = data %>% filter(date == "09.15.26"))
+```
+
+Slope
+```{r}
+coef(mod)
+```
+
+Calculate efficiency
+```{r}
+slope3_ld <- coef(mod)[["log_10_conc"]]
+
+efficiency3_ld <- (10^(-1 / slope3_ld) - 1) * 100
+
+efficiency3_ld
+```
+
+Calculate R square
+```{r}
+rsquare3_ld <- summary(mod)$r.squared
+```
+
+Slightly brings down the efficiency for the latest run
+
+# Run 4
+
+```{r}
+mod <- lm(average_ct ~ log_10_conc, data = data %>% filter(date == "09.23.26"))
+```
+
+Slope
+```{r}
+coef(mod)
+```
+
+Calculate efficiency
+```{r}
+slope4_ld <- coef(mod)[["log_10_conc"]]
+
+efficiency4_ld <- (10^(-1 / slope4_ld) - 1) * 100
+
+efficiency4_ld
+```
+
+Calculate R square
+```{r}
+rsquare4_ld <- summary(mod)$r.squared
+```
+
+```{r}
+
+```
+
