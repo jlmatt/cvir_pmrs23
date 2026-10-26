@@ -5,6 +5,8 @@ account: jlmatt
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 15598731
-bundleId: 10969183
+bundleId: 12742648
 url: https://jlmatt.shinyapps.io/shiny/
 version: 1
+asMultiple: FALSE
+asStatic: FALSE

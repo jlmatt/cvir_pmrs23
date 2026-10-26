@@ -8,6 +8,7 @@ library(tibble)
 library(leaflet)
 library(plotly)
 library(shinyscreenshot)
+library(munsell)
 
 # Load data
 #data <- readRDS(here("shiny", "data", "data_for_shiny.rds"))
@@ -52,9 +53,9 @@ ui <- fluidPage(
       # Checkbox group for selecting bays
       checkboxGroupInput("selected_bays", "Select Bays:", 
                          choices = unique(data$bay_full_name), 
-                         selected = data %>% 
-                           filter(bay %in% c("GAL","LLM")) %>%
-                           pull(bay_full_name)),
+                         selected = unique(
+                           data$bay_full_name[data$bay %in% c("GAL", "LLM")]
+                         )),
       # Dynamic selection for sites based on selected bays
       uiOutput("site_selection"),  # Placeholder for dynamic site selection
     
@@ -131,8 +132,8 @@ server <- function(input, output, session) {
         scale_shape_manual(name = "Sites",
                            labels = filtered_legend$key,
                            values = filtered_legend$shape) +
-        scale_y_continuous(limits = c(0,1000000),
-                           breaks = seq(0, 1000000, by = 100000),     
+        scale_y_continuous(limits = c(0,900000),
+                           breaks = seq(0, 900000, by = 100000),     
                            labels = scales::label_number(scale = 1e-3, suffix = "K"))+ 
         scale_x_date(
           limits = as.Date(c("2023-11-01", "2024-10-31")),
@@ -258,7 +259,8 @@ server <- function(input, output, session) {
                            values = filtered_legend$shape) +
         labs(
           x = paste("PC1:", round(eig[1, 3], digits = 3), "%"), 
-          y = paste("PC2:", round(eig[2, 3], digits = 3), "%")
+          y = paste("PC2:", round(eig[2, 3], digits = 3), "%"), 
+          caption = "Percent variance explained is based on the full dataset."
         ) +
         theme_minimal()  
       
@@ -271,18 +273,22 @@ server <- function(input, output, session) {
     site_data <- data %>% filter(site_full_name %in% input$selected_sites)
     
     leaflet(site_data) %>%
-      addProviderTiles(providers$CartoDB.PositronNoLabels) %>%
-      addCircleMarkers(lng = ~longitude, 
-                       lat = ~latitude, 
-                       popup = ~site_full_name,
-                       fillColor = ~color,
-                       color = "black",
-                       weight = 0.5,
-                       radius = 5) %>%
-      fitBounds(lng1 = min(data$longitude),
-                lat1 = min(data$latitude),
-                lng2 = max(data$longitude),
-                lat2 = max(data$latitude))
+      addTiles() %>%
+      addCircleMarkers(
+        lng = ~longitude,
+        lat = ~latitude,
+        popup = ~site_full_name,
+        fillColor = ~color,
+        color = "black",
+        weight = 0.5,
+        radius = 5
+      ) %>%
+      fitBounds(
+        lng1 = min(data$longitude),
+        lat1 = min(data$latitude),
+        lng2 = max(data$longitude),
+        lat2 = max(data$latitude)
+      )
   }) 
   
 }

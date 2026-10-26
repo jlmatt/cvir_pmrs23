@@ -1,0 +1,22 @@
+name: shiny_clean
+channels:
+  - bioconda
+  - conda-forge
+  - defaults
+dependencies:
+  - r-base=4.5
+  - r-curl
+  - r-dplyr
+  - r-ggplot2
+  - r-httr2
+  - r-leaflet
+  - r-munsell
+  - r-plotly
+  - r-readr
+  - r-rsconnect
+  - r-scales
+  - r-shiny
+  - r-shinyscreenshot
+  - r-stringr
+  - r-tibble
+prefix: /home/jmatt1/bin/miniforge3/envs/shiny_clean

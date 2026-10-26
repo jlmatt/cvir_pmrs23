@@ -144,6 +144,34 @@ Calculate R square
 rsquare4 <- summary(mod)$r.squared
 ```
 
+# Run 5 -- 3 step extension
+
+```{r}
+mod <- lm(average_ct ~ log_10_conc, data = data %>% filter(date == "09.30.26"))
+```
+
+Slope
+```{r}
+coef(mod)
+```
+
+Calculate efficiency
+```{r}
+slope4 <- coef(mod)[["log_10_conc"]]
+
+efficiency4 <- (10^(-1 / slope4) - 1) * 100
+
+efficiency4
+```
+
+Calculate R square
+```{r}
+rsquare4 <- summary(mod)$r.squared
+```
+
+
+
+
 
 # Take out last dilution
 
