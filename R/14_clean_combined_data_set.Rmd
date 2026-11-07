@@ -100,9 +100,17 @@ data <- data %>%
 
 Good enough for now, can clean more later
 
-```{r}
+```{r, eval = FALSE}
 saveRDS(data,here::here("data","derived","clean_data.RDS"))
 ```
+
+Joey, do one more check here of the data here
+
+add a README with some things that need describing
+
+adding rest of genetic data (joey)
+
+adding admixture data (Webster)
 
 ```{r}
 

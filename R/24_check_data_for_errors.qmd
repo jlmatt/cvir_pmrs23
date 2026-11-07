@@ -1,0 +1,432 @@
+---
+title: "24_check_data_for_errors"
+format: html
+---
+
+```{r}
+library(tidyverse)
+library(here)
+```
+
+```{r}
+data <- read_rds(here::here("data","derived","clean_data.RDS"))
+```
+
+```{r}
+skimr::skim(data)
+```
+
+Which zone is NA?
+
+```{r}
+data %>%
+  filter(is.na(zone))
+```
+
+```{r}
+data <- data %>%
+  filter(!is.na(zone))
+```
+
+```{r}
+skimr::skim(data)
+```
+
+do we need the time shucked value?  probably not...
+
+```{r}
+data <- data %>%
+  select(-time_shucked)
+```
+
+Why are so many NA for sex?
+
+```{r}
+data %>%
+  count(sex)
+```
+
+I think there is an issue here -- if there is a sperm rating above 0, then they must be male
+
+```{r}
+data %>%
+  ggplot(aes(x = sperm_rating)) + 
+  geom_histogram()
+```
+
+```{r}
+data %>%
+  filter(sperm_rating == 0) %>%
+  count(sex)
+```
+
+There is a mistake in a couple had their sperm rating put in the "egg count" column
+
+```{r}
+data <- data %>%
+  mutate(sperm_rating = if_else(tube_id == 	"FEB_SDJ_9", egg_count, sperm_rating)) %>%
+  mutate(sperm_rating = if_else(tube_id == 	"FEB_SDJ_11", egg_count, sperm_rating)) %>%
+  mutate(egg_count = if_else(tube_id == "FEB_SDJ_9", NA, egg_count)) %>% 
+  mutate(egg_count = if_else(tube_id == "FEB_SDJ_11", NA, egg_count))
+```
+
+```{r}
+test <- data %>%
+  mutate(sex = case_when(
+    !is.na(sperm_rating) & sperm_rating == 0 ~ "U",
+    !is.na(sperm_rating) & sperm_rating >= 1 ~ "M", 
+    is.na(sex) ~ "U",
+    sex == "F" ~ "F",
+    sex == "H" ~ "H",
+    TRUE ~ NA
+  ))
+```
+
+```{r}
+test %>%
+  count(sex, sperm_rating)
+```
+
+```{r}
+test %>% 
+  filter(sex == "U") %>%
+  count(egg_count)
+```
+
+Ok, looks like we did this right.
+
+```{r}
+data <- test
+```
+
+```{r}
+skimr::skim(data)
+```
+
+Ugh, time to go through the notes
+
+```{r}
+data %>%
+  count(notes) %>% 
+  print(n = Inf)
+```
+
+remove the ROCK
+
+```{r}
+data <- data %>%
+    filter(notes != "ROCK" | is.na(notes)) %>%
+  filter(notes != "SPAT - NOT USING" | is.na(notes))
+```
+
+```{r}
+data %>%
+  count(notes) %>% 
+  print(n = Inf)
+```
+
+
+Ok, what is the ramification of DEAD
+
+- keep in mind that meat weight is calculated by subtracting shell_weight_and_meat_weight from shell_weight 
+
+Ok, I guess if dead, we need to make total_weight, shell_weight_and_meat_weight, and meat_weight NA, because a dead oyster would be leaking its liquor which could throw off calculations you may want to use with total weight, and it's not useful to know the weight of a dead oyster
+
+```{r}
+examine<-data %>%
+  filter(notes %in% c("DEAD", "Dead when shucked", "dead"))
+
+test<-data %>%
+  mutate(total_weight = case_when(
+    notes %in% c("DEAD", "Dead when shucked", "dead") ~ NA, 
+    TRUE ~ total_weight
+  )) %>%
+  mutate(shell_weight_and_meat_weight = case_when(
+    notes %in% c("DEAD", "Dead when shucked", "dead") ~ NA, 
+    TRUE ~ shell_weight_and_meat_weight
+  )) %>%
+  mutate(meat_weight = case_when(
+    notes %in% c("DEAD", "Dead when shucked", "dead") ~ NA, 
+    TRUE ~ meat_weight
+  ))
+```
+
+```{r}
+examine<-data %>%
+  filter(grepl("DIED DURING PROCESSING|DYING|HOLE|KILLED|died|dying", notes))
+```
+
+```{r}
+examine<-data %>%
+  filter(grepl("DIED DURING PROCESSING|DYING", notes))
+
+test <-test %>%
+  mutate(total_weight = case_when(
+    grepl("DIED DURING PROCESSING|DYING|DIED WHILE PROCESSSING", notes) ~ NA, 
+    TRUE ~ total_weight
+  ))
+```
+
+```{r}
+examine<-data %>%
+  filter(grepl("HOLE|KILLED|died|dying", notes))
+```
+
+leaking, maybe dying  get rid of total weight
+KILLED DURING PROCESSING get rid of total weight
+died while processing get rid of total weight
+HOLE IN SHELL BEFORE SHUCK get rid of total weight
+
+```{r}
+test <- test %>%
+  mutate(total_weight = case_when(
+    grepl("HOLE|KILLED|died", notes) ~ NA, 
+    TRUE ~ total_weight
+  ))
+```
+
+```{r}
+check <- test %>%
+  filter(grepl("DEAD|Dead|dead|DIED|DYING|HOLE|KILLED|died", notes)) %>%
+  select(total_weight, shell_weight_and_meat_weight, meat_weight)
+```
+
+Ok, these seems good 
+
+```{r}
+data %>%
+  count(notes) %>% 
+  print(n = Inf)
+```
+
+```{r}
+data %>%
+  filter(grepl("calipers",notes)) %>%
+  select(shell_height,notes)
+```
+
+Ok, this is fine.
+
+```{r}
+data %>% filter(grepl("meat wieght", notes)) %>%
+  select(meat_weight, notes)
+```
+
+```{r}
+test <- data %>%
+  mutate(meat_weight = case_when(
+    grepl("meat wieght", notes) ~ 5.45,
+    is.na(meat_weight) ~ NA, 
+    TRUE ~ meat_weight
+  )) %>%
+  mutate(wt_adj_fec = case_when(
+    grepl("meat wieght", notes) ~ egg_count/meat_weight, 
+    TRUE ~ wt_adj_fec
+  ))
+```
+
+Ok, looks like we are done with the notes. Thank god
+
+```{r}
+data <- test
+```
+
+```{r}
+skimr::skim(data)
+```
+
+Let's look for obvious errors
+
+```{r}
+library(GGally)
+
+data %>%
+  select(total_weight,meat_weight) %>%
+  ggpairs()
+```
+
+```{r}
+data %>%
+  filter(total_weight < 200 & meat_weight > 50) %>%
+  select(total_weight, shell_length, shell_weight_and_meat_weight,meat_weight, shell_weight, tube_id)
+```
+
+Hmmm.. did shell weight and meat weight get mixed up?
+
+```{r}
+data %>% 
+  filter(shell_length > 80 & shell_length < 96) %>%
+  summarize(mean_meat = mean(meat_weight, na.rm = TRUE))
+
+data %>% 
+  filter(total_weight > 67 & total_weight < 87) %>%
+  summarize(mean_meat = mean(meat_weight, na.rm = TRUE))
+```
+
+Yeah, I think the meat weight and shell weight got mixed up here
+
+```{r}
+test <- data %>%
+  mutate(meat_weight = case_when(
+    tube_id == "SEP_UVB_3" ~ 5.04, 
+    TRUE ~ meat_weight
+  )) %>%
+  mutate(shell_weight = case_when(
+    tube_id == "SEP_UVB_3" ~ 59.2,
+    TRUE ~ shell_weight
+  ))
+```
+
+```{r}
+test %>%
+  select(total_weight,meat_weight) %>%
+  ggpairs()
+```
+
+The rest of these look fine. 
+
+```{r}
+test %>%
+  select(total_weight,meat_weight, shell_weight, shell_weight_and_meat_weight) %>%
+  ggpairs()
+```
+
+Lol oops there is an issue with shell weight
+
+I see, there was just an issue with the decimal points
+
+```{r}
+test <- test %>%
+  mutate(shell_weight = case_when(
+    tube_id == "JUN_BSP_1" ~ NA, 
+    TRUE ~ shell_weight
+  )) %>%
+  mutate(shell_weight = case_when(
+    tube_id == "AUG_SLC_2" ~ NA,
+    TRUE ~ shell_weight
+  ))
+```
+
+```{r}
+test %>%
+  select(total_weight,meat_weight, shell_weight, shell_weight_and_meat_weight) %>%
+  ggpairs()
+```
+
+biggest issue remaining is one with way too little shell weight for total weight
+
+```{r}
+test %>%
+  filter(total_weight > 100 & shell_weight < 10) %>%
+  select(total_weight, shell_length, meat_weight, shell_weight, shell_weight_and_meat_weight, tube_id)
+```
+
+Make shell weight NA here
+
+```{r}
+test <- test %>%
+  mutate(shell_weight = case_when(
+    tube_id == "JUL_BSP_11" ~ NA, 
+    TRUE ~ shell_weight
+  )) 
+```
+
+```{r}
+test %>%
+  select(total_weight,meat_weight, shell_weight, shell_weight_and_meat_weight) %>%
+  ggpairs()
+```
+
+Are there some where shellweight greater than total weight?
+
+```{r}
+test %>%
+  filter(shell_weight > total_weight) %>%
+  select(shell_weight_and_meat_weight,tube_id, shell_weight, total_weight, shell_length)
+```
+
+Make total weight NA for these
+
+```{r}
+test <- test %>%
+  mutate(total_weight = case_when(
+    shell_weight > total_weight ~ NA, 
+    TRUE ~ total_weight
+  ))
+```
+
+```{r}
+test %>%
+  select(total_weight,meat_weight, shell_weight, shell_weight_and_meat_weight) %>%
+  ggpairs()
+```
+
+```{r}
+test %>%
+  filter(shell_weight > 80 & shell_weight_and_meat_weight < 80) %>%
+  select(tube_id, total_weight,shell_weight_and_meat_weight,shell_weight,meat_weight)
+```
+
+```{r}
+test <- test %>%
+  mutate(shell_weight_and_meat_weight = case_when(
+    shell_weight > 80 & shell_weight_and_meat_weight < 80 ~ NA, 
+    TRUE ~ shell_weight_and_meat_weight
+  ))
+```
+
+```{r}
+test %>%
+  select(total_weight,meat_weight, shell_weight, shell_weight_and_meat_weight) %>%
+  ggpairs()
+```
+
+```{r}
+test %>%
+  filter(shell_weight > 150 & shell_weight_and_meat_weight < 100) %>%
+  select(tube_id, total_weight,shell_weight_and_meat_weight,shell_weight,meat_weight)
+```
+
+```{r}
+test <- test %>%
+  mutate(shell_weight_and_meat_weight = case_when(
+    shell_weight > 150 & shell_weight_and_meat_weight < 100 ~ NA, 
+    TRUE ~ shell_weight_and_meat_weight
+  ))
+```
+
+```{r}
+test %>%
+  select(total_weight,meat_weight, shell_weight, shell_weight_and_meat_weight) %>%
+  ggpairs()
+```
+
+```{r}
+test %>%
+  filter(shell_weight_and_meat_weight > 100 & total_weight < 100) %>%
+  select(tube_id, total_weight,shell_weight_and_meat_weight,shell_weight,meat_weight, shell_length)
+```
+
+```{r}
+test <- test %>%
+  mutate(total_weight = case_when(
+    shell_weight_and_meat_weight > 100 & total_weight < 100 ~ NA, 
+    TRUE ~ total_weight
+  ))
+```
+
+```{r}
+test %>%
+  select(total_weight,meat_weight, shell_weight, shell_weight_and_meat_weight) %>%
+  ggpairs()
+```
+
+ITS BEAUTIFUL
+
+save it, this here be clean
+
+```{r}
+write_rds(test, here::here("data","derived","data_cleaned_11062026.rds"))
+write_csv(test, here::here("data","derived","data_cleaned_11062026.csv"))
+```
+
