@@ -39,137 +39,39 @@ data <- data %>%
 
 ```{r}
 str(data)
+
+data <- data %>%
+  mutate(date = as.factor(date))
+
+levels(data$date)
 ```
 
-
-# Run 1
+All runs
 
 ```{r}
-mod <- lm(average_ct ~ log_10_conc, data = data %>% filter(date == "05.15.26"))
+models <- data %>%
+  nest(.by = date) %>%
+  mutate(
+    model = map(data, ~ lm(average_ct ~ log_10_conc, data = .x))
+  )
+
+results<-models %>%
+  mutate(
+    stats = map(model, ~ broom::glance(.x) %>%
+                  select(r.squared, adj.r.squared)),
+    coefs = map(model, ~ broom::tidy(.x) %>%
+                  filter(term == "log_10_conc") %>%
+                  select(estimate))
+  ) %>%
+  unnest(c(stats, coefs)) %>%
+  select(
+    date,
+    r_squared = r.squared,
+    adj_r_squared = adj.r.squared,
+    slope = estimate
+  ) %>%
+  mutate(efficiency = (10^(-1 / slope) - 1) * 100)
 ```
-
-Slope
-```{r}
-coef(mod)
-```
-
-Calculate efficiency
-```{r}
-slope1 <- coef(mod)[["log_10_conc"]]
-
-efficiency1 <- (10^(-1 / slope1) - 1) * 100
-```
-
-Calculate R square
-```{r}
-rsquare1 <- summary(mod)$r.squared
-```
-
-Ok, so this run is money!
-
-# Run 2
-
-```{r}
-mod <- lm(average_ct ~ log_10_conc, data = data %>% filter(date == "07.27.26"))
-```
-
-Slope
-```{r}
-coef(mod)
-```
-
-Calculate efficiency
-```{r}
-slope2 <- coef(mod)[["log_10_conc"]]
-
-efficiency2 <- (10^(-1 / slope2) - 1) * 100
-
-efficiency2
-```
-
-Calculate R square
-```{r}
-rsquare2 <- summary(mod)$r.squared
-```
-
-This run is bad!
-
-# Run 3
-
-```{r}
-mod <- lm(average_ct ~ log_10_conc, data = data %>% filter(date == "09.15.26"))
-```
-
-Slope
-```{r}
-coef(mod)
-```
-
-Calculate efficiency
-```{r}
-slope3 <- coef(mod)[["log_10_conc"]]
-
-efficiency3 <- (10^(-1 / slope3) - 1) * 100
-
-efficiency3
-```
-
-Calculate R square
-```{r}
-rsquare3 <- summary(mod)$r.squared
-```
-
-# Run 4
-
-```{r}
-mod <- lm(average_ct ~ log_10_conc, data = data %>% filter(date == "09.23.26"))
-```
-
-Slope
-```{r}
-coef(mod)
-```
-
-Calculate efficiency
-```{r}
-slope4 <- coef(mod)[["log_10_conc"]]
-
-efficiency4 <- (10^(-1 / slope4) - 1) * 100
-
-efficiency4
-```
-
-Calculate R square
-```{r}
-rsquare4 <- summary(mod)$r.squared
-```
-
-# Run 5 -- 3 step extension
-
-```{r}
-mod <- lm(average_ct ~ log_10_conc, data = data %>% filter(date == "09.30.26"))
-```
-
-Slope
-```{r}
-coef(mod)
-```
-
-Calculate efficiency
-```{r}
-slope4 <- coef(mod)[["log_10_conc"]]
-
-efficiency4 <- (10^(-1 / slope4) - 1) * 100
-
-efficiency4
-```
-
-Calculate R square
-```{r}
-rsquare4 <- summary(mod)$r.squared
-```
-
-
 
 
 
@@ -179,88 +81,33 @@ rsquare4 <- summary(mod)$r.squared
 Let's do this but remove dilution 13 (lower detection)
 
 ```{r}
-data <- data %>%
+data_last <- data %>%
   filter(!dilution == "gb_13_te")
 ```
 
-# Run 1
-
 ```{r}
-mod <- lm(average_ct ~ log_10_conc, data = data %>% filter(date == "05.15.26"))
+models <- data_last %>%
+  nest(.by = date) %>%
+  mutate(
+    model = map(data, ~ lm(average_ct ~ log_10_conc, data = .x))
+  )
+
+results_last <-models %>%
+  mutate(
+    stats = map(model, ~ broom::glance(.x) %>%
+                  select(r.squared, adj.r.squared)),
+    coefs = map(model, ~ broom::tidy(.x) %>%
+                  filter(term == "log_10_conc") %>%
+                  select(estimate))
+  ) %>%
+  unnest(c(stats, coefs)) %>%
+  select(
+    date,
+    r_squared = r.squared,
+    adj_r_squared = adj.r.squared,
+    slope = estimate
+  ) %>%
+  mutate(efficiency = (10^(-1 / slope) - 1) * 100)
 ```
 
-Slope
-```{r}
-coef(mod)
-```
-
-Calculate efficiency
-```{r}
-slope1_ld <- coef(mod)[["log_10_conc"]]
-
-efficiency1_ld <- (10^(-1 / slope1_ld) - 1) * 100
-```
-
-Calculate R square
-```{r}
-rsquare1_ld <- summary(mod)$r.squared
-```
-
-Ok, so this run is money!
-
-# Run 3
-
-```{r}
-mod <- lm(average_ct ~ log_10_conc, data = data %>% filter(date == "09.15.26"))
-```
-
-Slope
-```{r}
-coef(mod)
-```
-
-Calculate efficiency
-```{r}
-slope3_ld <- coef(mod)[["log_10_conc"]]
-
-efficiency3_ld <- (10^(-1 / slope3_ld) - 1) * 100
-
-efficiency3_ld
-```
-
-Calculate R square
-```{r}
-rsquare3_ld <- summary(mod)$r.squared
-```
-
-Slightly brings down the efficiency for the latest run
-
-# Run 4
-
-```{r}
-mod <- lm(average_ct ~ log_10_conc, data = data %>% filter(date == "09.23.26"))
-```
-
-Slope
-```{r}
-coef(mod)
-```
-
-Calculate efficiency
-```{r}
-slope4_ld <- coef(mod)[["log_10_conc"]]
-
-efficiency4_ld <- (10^(-1 / slope4_ld) - 1) * 100
-
-efficiency4_ld
-```
-
-Calculate R square
-```{r}
-rsquare4_ld <- summary(mod)$r.squared
-```
-
-```{r}
-
-```
-
+ok, great
